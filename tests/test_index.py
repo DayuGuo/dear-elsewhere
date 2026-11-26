@@ -74,6 +74,21 @@ class IndexTests(unittest.TestCase):
             self.conn.execute("UPDATE posts SET hidden=1 WHERE id=?", (ids[0],))
         self.assertEqual(self.web.get(response.location).data.count(b"Choose this invitation"), 2)
 
+    def test_language_choice_keeps_draw_and_translates_following_pages(self):
+        with self.conn:
+            seed(self.conn)
+        response = self.web.get("/?picks=101,102,103", headers={"Accept-Language": "zh-CN"})
+        self.assertEqual(response.headers["Content-Language"], "zh-CN")
+        self.assertIn("选择这封邀请", response.get_data(as_text=True))
+        self.assertIn("picks=101%2C102%2C103&amp;lang=en", response.get_data(as_text=True))
+        self.web.get("/?picks=101,102,103&lang=zh")
+        detail = self.web.get("/quest/102").get_data(as_text=True)
+        self.assertIn("木百叶窗", detail)
+        self.assertIn("2026年6月9日", detail)
+        self.assertIn("关于致别处", self.web.get("/about").get_data(as_text=True))
+        self.web.get("/about?lang=en")
+        self.assertIn(b"wooden shutter", self.web.get("/quest/102").data)
+
     def test_empty_and_small_draws(self):
         empty = self.web.get("/?draw=1", follow_redirects=True)
         self.assertIn(b"no invitations available", empty.data)

@@ -6,6 +6,17 @@
 
 网站有三个页面。首页先介绍玩法。点击抽签可从公开索引随机得到三封不同的邀请，任选一封即可查看详情；不足三封时显示现有邀请。抽签使用本地数据库，不消耗 X API 额度。下方按时间倒序列出邀请，每封附上最近一条完成回应，以枝线标出关联。详情页可阅读全部直接回应并前往 X 写回信。About 介绍项目理念。正式页面通过 X 官方组件展示内容，禁用 JavaScript 或组件加载失败时仍有原文链接。模拟模式完全离线。
 
+## 界面与语言
+
+首页的挂信树以十九世纪手工着色的铜版博物学图谱为参照。页面提供简体中文与英文。首次访问跟随浏览器语言，页首可切换并记住选择，抽签结果和当前页码会保留。界面、日期与虚构演示来信随语言切换，真实 X 原帖保留作者原文。
+
+站点本地加载 Cormorant Garamond 和 Noto Serif SC 的 WOFF2 字体子集，授权文件位于 `elsewhere/static/fonts/`。中文子集收录当前模板与演示来信所用的字，其余字回退到设备宋体。
+
+| 模拟数据首页 | 桌面（1360 × 1000） | 手机（390 × 844） |
+| --- | --- | --- |
+| 中文 | [查看截图](docs/previews/desktop-zh.png) | [查看截图](docs/previews/mobile-zh.png) |
+| English | [View screenshot](docs/previews/desktop-en.png) | [View screenshot](docs/previews/mobile-en.png) |
+
 ## 先看演示
 
 需要 Python 3.11 或以上版本。以下命令适用于 macOS 和 Linux。在 Debian 12 上可先执行 `sudo apt install git python3-venv`。首次安装依赖需要联网。

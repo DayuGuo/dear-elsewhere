@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% from "parts.html" import source, pager, widgets %}
-{% block title %}Invitation of {{ invitation.created|date }} · Dear Elsewhere{% endblock %}
+{% block title %}{{ t('Invitation','来信') }} · {{ invitation.created|date }} · Dear Elsewhere{% endblock %}
 {% block main %}
 <div class="reading">
-  <a class="back" href="/#branches">← All letters</a>
-  <p class="meta">{{ 'Fictional preview · ' if demo }}{{ invitation.created|date }}</p>
-  <h1>Invitation</h1>
+  <a class="back" href="/#branches">← {{ t('All letters','所有来信') }}</a>
+  <p class="meta">{% if demo %}{{ t('Fictional preview','模拟来信') }} · {% endif %}{{ invitation.created|date }}</p>
+  <h1>{{ t('Invitation','一封探索邀请') }}</h1>
   <div class="branch-root">{{ source(invitation,demo,letters) }}</div>
-  <p>Try this invitation where you live. Reply directly to the original post on X with <b>#DearElsewhereDone</b>.</p>
-  {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">Reply on X ↗</a>{% endif %}
-  <div class="section-head"><h2>Replies</h2></div>
+  <p>{{ t('Try this invitation where you live. Reply directly to the original post on X with','在你生活的地方试试这封邀请，然后在 X 上直接回复原帖，带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p>
+  {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">{{ t('Reply on X','去 X 写回信') }} ↗</a>{% endif %}
+  <div class="section-head"><h2>{{ t('Replies','枝上的回信') }}</h2></div>
   {% for row in rows %}
   <article class="branch-reply"><time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>{{ source(row,demo,letters) }}</article>
-  {% else %}<p class="quiet">This invitation is open. The first reply is still to come.</p>{% endfor %}
+  {% else %}<p class="quiet">{{ t('This invitation is open. The first reply is still to come.','这封邀请一直敞开着，等待第一封回信。') }}</p>{% endfor %}
   {{ pager(number,more) }}
 </div>
 {% if not demo %}{{ widgets() }}{% endif %}

@@ -3,15 +3,15 @@
   <p class="letter">{{ letters[row.id] }}</p>
 {% else %}
   <div class="embed" data-post="{{ row.id }}"></div>
-  <a class="source" href="https://x.com/i/web/status/{{ row.id }}">Read original on X ↗</a>
+  <a class="source" href="https://x.com/i/web/status/{{ row.id }}">{{ t('Read original on X','在 X 阅读原帖') }} ↗</a>
 {% endif %}
 {% endmacro %}
 
 {% macro pager(number, more, anchor='') %}
-{% if number>1 or more %}<nav class="pager" aria-label="Pages">
-{% if number>1 %}<a href="?page={{ number-1 }}{{ anchor }}">← Previous</a>{% endif %}
-<span>Page {{ number }}</span>
-{% if more %}<a href="?page={{ number+1 }}{{ anchor }}">Next →</a>{% endif %}
+{% if number>1 or more %}<nav class="pager" aria-label="{{ t('Pages','分页') }}">
+{% if number>1 %}<a href="?page={{ number-1 }}{{ anchor }}">← {{ t('Previous','上一页') }}</a>{% endif %}
+<span>{{ t('Page %d','第 %d 页')|format(number) }}</span>
+{% if more %}<a href="?page={{ number+1 }}{{ anchor }}">{{ t('Next','下一页') }} →</a>{% endif %}
 </nav>{% endif %}
 {% endmacro %}
 {% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js') }}"></script>{% endmacro %}

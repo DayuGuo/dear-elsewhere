@@ -18,6 +18,7 @@ function embed(element) {
   loadWidgets().then(api => api.widgets.createTweet(element.dataset.post, element, {
     conversation: "none",
     dnt: true,
+    lang: document.documentElement.lang === "zh-CN" ? "zh-cn" : "en",
     align: "left"
   })).catch(() => { /* Keep the original link when X is unavailable. */ });
 }

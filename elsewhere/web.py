@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from urllib.parse import urlencode
 
 from flask import Flask, abort, g, redirect, render_template, request, url_for
 
@@ -7,6 +8,39 @@ from .db import MATCH_REPLY, connect, state
 
 app = Flask(__name__)
 SIZE = 12
+
+
+@app.before_request
+def choose_language():
+    for candidate in (request.args.get("lang"), request.cookies.get("lang")):
+        if candidate in ("en", "zh"):
+            g.lang = candidate
+            return
+    g.lang = request.accept_languages.best_match(["en", "zh"], default="en")
+
+
+@app.after_request
+def remember_language(response):
+    if request.endpoint != "static":
+        response.headers["Content-Language"] = "zh-CN" if g.lang == "zh" else "en"
+        response.vary.update(("Cookie", "Accept-Language"))
+        if request.args.get("lang") == g.lang and request.cookies.get("lang") != g.lang:
+            response.set_cookie("lang", g.lang, max_age=31536000, samesite="Lax",
+                                httponly=True, secure=request.is_secure)
+            response.cache_control.private = True
+    return response
+
+
+@app.template_global()
+def t(english, chinese):
+    return chinese if g.lang == "zh" else english
+
+
+@app.template_global()
+def language_url(language):
+    params = request.args.to_dict()
+    params["lang"] = language
+    return "?" + urlencode(params)
 
 
 def db():
@@ -26,14 +60,15 @@ def settings():
     demo = state(db(), "demo") == "1"
     letters = {}
     if demo:
-        from .demo import LETTERS
-        letters = LETTERS
+        from .demo import LETTERS, LETTERS_ZH
+        letters = t(LETTERS, LETTERS_ZH)
     return dict(demo=demo, letters=letters, contact=os.getenv("DEAR_CONTACT_EMAIL"))
 
 
 @app.template_filter("date")
 def format_date(value):
-    return datetime.fromisoformat(value).strftime("%d %b %Y").lstrip("0")
+    day = datetime.fromisoformat(value)
+    return t(day.strftime("%d %b %Y").lstrip("0"), f"{day.year}年{day.month}月{day.day}日")
 
 
 def page(sql, params=()):

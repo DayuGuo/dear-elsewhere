@@ -2,71 +2,74 @@
 {% from "parts.html" import source, pager, widgets %}
 {% block main %}
 {% if drawn is none %}
-<section class="mast">
+<section class="frontispiece">
   <div class="mast-copy">
-    <p class="chinese" lang="zh">致别处</p>
-    <h1>An invitation to<br><em>notice the world.</em></h1>
-    <p class="intro">Draw a letter from a stranger, try their invitation where you live, and write back on X with what you find.</p>
+    <p class="imprint">{{ t('致别处','Dear Elsewhere') }}</p>
+    <h1>{{ t('An invitation to','一份重新观察') }}<br><em>{{ t('notice the world.','世界的邀请。') }}</em></h1>
+    <p class="intro">{{ t('Draw three letters from strangers. Choose one to take outside, then write back on X with what you find.','抽三封来信，选一封带出门。把路上的发现写成回信，寄回 X 上的原帖。') }}</p>
     <div class="mast-actions">
-      <form action="/" method="get"><button name="draw" value="1" class="button">Draw three invitations <span aria-hidden="true">↗</span></button></form>
-      <a class="action" href="#how-to-play">How to play ↓</a>
+      <form action="/" method="get"><button name="draw" value="1" class="button">{{ t('Draw three invitations','抽取三封邀请') }} <span aria-hidden="true">→</span></button></form>
+      <a class="action" href="#how-to-play">{{ t('How to play','阅读玩法') }} ↓</a>
     </div>
   </div>
-  <img class="tree-art" src="{{ url_for('static',filename='letter-tree.webp') }}" width="1080" height="720" alt="">
+  <figure class="specimen">
+    <img class="tree-art" src="{{ url_for('static',filename='letter-tree.webp') }}" width="1402" height="1122" alt="{{ t('An engraved wild rose tree with folded letters tied to its branches.','细线铜版画，一株开花的野蔷薇树，枝条上用细绳系着信封。') }}">
+    <figcaption><div class="plate-title"><span lang="la">Tab. I.</span><i>{{ t('The letter tree','挂信树') }}</i></div>
+      <small>{{ t('1. Folded letter　2. Rosebud　3. Butterfly','1. 折封　2. 蔷薇花苞　3. 蝴蝶') }}</small>
+    </figcaption>
+  </figure>
 </section>
-{% endif %}
-
-{% if drawn is not none %}
+{% else %}
 <section id="draw" class="draw">
-  {% if demo %}<p class="meta">Fictional preview</p>{% endif %}
-  <div class="section-head"><h1>Choose an invitation</h1>
-    {% if drawn %}<form method="get" action="/"><button class="text-button" name="draw" value="1">Draw again ↻</button></form>{% endif %}
+  {% if demo %}<p class="meta">{{ t('Fictional preview','模拟来信') }}</p>{% endif %}
+  <div class="section-head"><h1>{{ t('Choose an invitation','选一封邀请') }}</h1>
+    {% if drawn %}<form method="get" action="/"><button class="text-button" name="draw" value="1">{{ t('Draw again','再抽一次') }} ↻</button></form>{% endif %}
   </div>
   {% if drawn %}
-    {% if drawn|length < 3 %}<p class="quiet">Only {{ drawn|length }} {{ 'letter is' if drawn|length == 1 else 'letters are' }} available in this draw.</p>{% endif %}
+    {% if drawn|length < 3 %}<p class="quiet">{{ t('This draw has %d available.','这次可选的邀请共有 %d 封。')|format(drawn|length) }}</p>{% endif %}
     <div class="choices">
       {% for row in drawn %}
       <article class="choice">
         <time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>
         {{ source(row,demo,letters) }}
-        <a class="choose" href="{{ url_for('quest',ident=row.id) }}">Choose this invitation →</a>
+        <a class="choose" href="{{ url_for('quest',ident=row.id) }}">{{ t('Choose this invitation','选择这封邀请') }} →</a>
       </article>
       {% endfor %}
     </div>
   {% else %}
-    <p>There are no invitations available in this draw.</p>
-    <a class="action" href="#how-to-play">See how to send one ↓</a>
+    <p>{{ t('There are no invitations available in this draw.','暂时还没有可抽取的邀请。') }}</p>
+    <a class="action" href="#how-to-play">{{ t('See how to send one','看看怎样寄出第一封') }} ↓</a>
   {% endif %}
 </section>
 {% endif %}
 
 <section id="how-to-play" class="guide">
-  <h2>How to play</h2>
+  <h2>{{ t('How to play','参与玩法') }}</h2>
   <ol class="steps">
-    <li><h3>Pick a letter</h3><p>Draw three invitations and choose one that makes you curious. Take it with you on your next walk.</p></li>
-    <li><h3>Write back</h3><p>Reply directly to the original post on X with a few words, a photo, or a video. Add <b>#DearElsewhereDone</b>.</p></li>
-    <li><h3>Send your own</h3><p>What would you love to see from elsewhere? Ask in an original public post on X with <b>#DearElsewhereQuest</b>.</p></li>
+    <li><h3>{{ t('Pick a letter','挑一封信') }}</h3><p>{{ t('Draw three invitations and choose one that makes you curious. Take it with you on your next walk.','从抽出的三封邀请中，挑一封让你好奇的。下次散步时，带着它出发。') }}</p></li>
+    <li><h3>{{ t('Write back','写封回信') }}</h3><p>{{ t('Reply directly to the original post on X with words, a photo, or a video. Add','在 X 上直接回复原帖，用文字、照片或视频分享你的发现。带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p></li>
+    <li><h3>{{ t('Send your own','发出邀请') }}</h3><p>{{ t('What would you love to see from elsewhere? Ask in an original public post on X with','你想看看别处的什么？在 X 上发一条公开原创帖，写下邀请，并带上') }} <b>#DearElsewhereQuest</b>{{ t('.','。') }}</p></li>
   </ol>
 </section>
 
 <section id="branches">
-  <div class="section-head"><h2>Letters &amp; replies</h2><span class="meta">{{ 'Fictional preview' if demo else 'Newest invitations first' }}</span></div>
+  <div class="section-head"><h2>{{ t('Letters & replies','来信与回音') }}</h2><span class="meta">{{ t('Fictional preview','模拟来信') if demo else t('Newest invitations first','按邀请时间倒序') }}</span></div>
   {% for row in rows %}
   <article class="branch">
     <div class="branch-root">
-      <p class="meta">Invitation · <time datetime="{{ row.created }}">{{ row.created|date }}</time></p>
+      <p class="meta">{{ t('Invitation','邀请') }} · <time datetime="{{ row.created }}">{{ row.created|date }}</time></p>
       {{ source(row,demo,letters) }}
-      <a class="action" href="{{ url_for('quest',ident=row.id) }}">Open invitation · {{ row.replies }} {{ 'reply' if row.replies == 1 else 'replies' }} →</a>
+      <a class="action" href="{{ url_for('quest',ident=row.id) }}">{{ t('Open invitation','展开来信') }} · {{ row.replies }} {{ t('reply' if row.replies == 1 else 'replies','封回信') }} →</a>
     </div>
     {% if row.reply_id %}
     <div class="branch-reply">
-      <p class="meta">Latest reply · <time datetime="{{ row.reply_created }}">{{ row.reply_created|date }}</time></p>
+      <p class="meta">{{ t('Latest reply','最近的回信') }} · <time datetime="{{ row.reply_created }}">{{ row.reply_created|date }}</time></p>
       {{ source({'id':row.reply_id,'created':row.reply_created},demo,letters) }}
     </div>
     {% endif %}
   </article>
   {% else %}
-  <div class="empty"><p>The first letter is still to come.</p><a class="action" href="#how-to-play">Send an invitation ↑</a></div>
+  <div class="empty"><p>{{ t('The first letter is still to come.','第一封邀请还在路上。') }}</p><a class="action" href="#how-to-play">{{ t('Send an invitation','寄出一封邀请') }} ↑</a></div>
   {% endfor %}
   {{ pager(number,more,'#branches') }}
 </section>
