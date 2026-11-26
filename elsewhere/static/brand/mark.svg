@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Dear Elsewhere</title>
+  <g fill="#49543e">
+    <!-- The lifted corner of the folded letter continues into a living twig. -->
+    <path d="M4.6 29.7 41.2 24 25.9 40.8Z"/>
+    <path d="m4.7 33.5 21.5 12.2 16.2-18 3.3 23.2-37.5 5.7Z"/>
+    <path d="M38.2 27.2c5.3-5.4 7.4-10.5 9.5-15.3l2.2 1c-2 6.2-5.1 11.6-9.2 16Z"/>
+    <path d="M45.2 18.5C43.9 10.8 50.3 4.8 60 4.1c-.9 8.8-6.3 15-14.8 14.4Z"/>
+  </g>
+</svg>

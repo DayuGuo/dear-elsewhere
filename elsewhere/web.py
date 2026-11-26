@@ -91,13 +91,13 @@ def home():
         response.cache_control.no_store = True
         return response
 
-    drawn = None
     if "picks" in request.args:
         ids = list(dict.fromkeys(request.args["picks"].split(",")[:3]))
         rows = db().execute(f"SELECT * FROM posts WHERE {visible} AND id IN (?,?,?)",
                             (ids + [None] * 3)[:3])
         by_id = {row["id"]: row for row in rows}
         drawn = [by_id[ident] for ident in ids if ident in by_id]
+        return render_template("home.html", drawn=drawn)
 
     result = page(f"""SELECT q.*,
                       (SELECT count(*) FROM posts r WHERE {MATCH_REPLY}) AS replies,
@@ -108,7 +108,7 @@ def home():
                       )
                       WHERE q.kind='invitation' AND q.hidden=0
                       ORDER BY q.created DESC, length(q.id) DESC, q.id DESC""")
-    return render_template("home.html", drawn=drawn, **result)
+    return render_template("home.html", drawn=None, **result)
 
 
 @app.get("/quest/<ident>")
