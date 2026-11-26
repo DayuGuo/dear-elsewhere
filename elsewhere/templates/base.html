@@ -24,6 +24,6 @@
   </nav>
 </header>
 <main id="main" class="wrapper">{% block main %}{% endblock %}</main>
-<footer class="wrapper"><span>{{ t('From somewhere, to someone, with curiosity.','从某处，寄给某人，带着好奇。') }}</span></footer>
+<footer class="wrapper"><span>{{ t('From somewhere, to someone, with curiosity.','从某处，寄给某人，带着好奇。') }}</span>{% if demo and drawn is defined and drawn is not none %}<small>{{ t('Fictional preview','模拟来信') }}</small>{% endif %}</footer>
 </body>
 </html>

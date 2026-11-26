@@ -89,6 +89,15 @@ class IndexTests(unittest.TestCase):
         self.web.get("/about?lang=en")
         self.assertIn(b"wooden shutter", self.web.get("/quest/102").data)
 
+    def test_open_letters_survive_a_shared_or_translated_draw(self):
+        with self.conn:
+            seed(self.conn)
+        response = self.web.get("/?picks=101,106,104&open=106,999&lang=zh")
+        html = response.get_data(as_text=True)
+        self.assertIn('data-letter-id="106" open', html)
+        self.assertNotIn('data-letter-id="101" open', html)
+        self.assertNotIn('data-letter-id="999"', html)
+
     def test_empty_and_small_draws(self):
         empty = self.web.get("/?draw=1", follow_redirects=True)
         self.assertIn(b"no invitations available", empty.data)

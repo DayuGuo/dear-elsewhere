@@ -23,32 +23,33 @@
 </section>
 {% else %}
 <section id="draw" class="draw">
-  {% if demo %}<p class="meta">{{ t('Fictional preview','模拟来信') }}</p>{% endif %}
-  <div class="section-head"><h1>{{ t('Letters from the tree','树下拆信') }}</h1>
-    {% if drawn %}<form method="get" action="/"><button class="text-button" name="draw" value="1">{{ t('Draw again','再取一组') }} ↻</button></form>{% endif %}
-  </div>
+  <header class="draw-head">
+    <div>
+      <h1>{{ t('Letters from the tree','树下拆信') }}</h1>
+      {% if drawn %}<p class="draw-note">{{ t('Open a letter. Take an invitation with you.','拆开读读，选一封带出门。') }}</p>{% endif %}
+    </div>
+    {% if drawn %}<form method="get" action="/"><button class="text-button" name="draw" value="1"><span aria-hidden="true">↻</span> {{ t('Draw again','再取一组') }}</button></form>{% endif %}
+  </header>
   {% if drawn %}
     {% if drawn|length < 3 %}<p class="quiet">{{ t('This draw has %d available.','这次可选的邀请共有 %d 封。')|format(drawn|length) }}</p>{% endif %}
-    <p class="draw-note">{{ t('Open the envelopes in any order. Choose a letter to take outside.','随意拆开几封读读，选一封带出门。') }}</p>
     <div class="choices">
       {% for row in drawn %}
-      <details class="choice">
-        <summary>
-          <span class="envelope-image" aria-hidden="true"></span>
-          <span class="envelope-heading">
-            <span class="letter-label">{{ t(['Letter I','Letter II','Letter III'],['第一封来信','第二封来信','第三封来信'])[loop.index0] }}</span>
-            <span class="seal-action sealed">{{ t('Open envelope','拆开信封') }} ↓</span>
-            <span class="seal-action unsealed">{{ t('Fold letter','折起信纸') }} ↑</span>
-          </span>
-        </summary>
-        <div class="letter-sheet">
-          <time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>
-          {{ source(row,demo,letters) }}
-          <a class="choose" href="{{ url_for('quest',ident=row.id) }}">{{ t('Choose this invitation','选择这封邀请') }} →</a>
-        </div>
-      </details>
+      {% set label = t(['Letter I','Letter II','Letter III'],['第一封来信','第二封来信','第三封来信'])[loop.index0] %}
+      <article class="mailpiece">
+        <details class="choice" data-letter-id="{{ row.id }}" {% if row.id in opened %}open{% endif %}>
+          <summary>
+            <time class="post-date" datetime="{{ row.created }}">{{ row.created|date }}</time>
+            <span class="postage" aria-hidden="true"><img src="{{ url_for('static',filename='stamp-' ~ ['rose','hips','butterfly'][loop.index0] ~ '.webp') }}" alt="" width="56" height="56"></span>
+            <span class="letter-label" id="letter-{{ row.id }}">{{ label }}</span>
+            <span class="fold-sign" aria-hidden="true"></span>
+          </summary>
+          <div class="letter-sheet">{{ source(row,demo,letters) }}</div>
+        </details>
+        <a class="choose" href="{{ url_for('quest',ident=row.id) }}" aria-describedby="letter-{{ row.id }}">{{ t('Choose this invitation','选择这封邀请') }} <span aria-hidden="true">→</span></a>
+      </article>
       {% endfor %}
     </div>
+    <script defer src="{{ url_for('static',filename='letters.js') }}"></script>
   {% else %}
     <p>{{ t('There are no invitations available in this draw.','暂时还没有可抽取的邀请。') }}</p>
     <a class="action" href="/#how-to-play">{{ t('See how to send one','看看怎样寄出第一封') }} ↓</a>

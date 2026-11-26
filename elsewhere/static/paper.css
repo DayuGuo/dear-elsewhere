@@ -40,7 +40,8 @@ body {
 :lang(zh-CN) body { font-size: 1.05rem; line-height: 1.85; }
 .wrapper { width: min(calc(100% - 4.5rem), 74rem); margin-inline: auto; }
 a { color: inherit; text-underline-offset: .24em; }
-a:hover, .text-button:hover { color: var(--rose); }
+a:hover, .text-button span { font: 1.18rem/1 Georgia, serif; margin-right: .2rem; }
+.text-button:hover { color: var(--rose); }
 :focus-visible { outline: 2px solid var(--rose); outline-offset: 4px; }
 section[id] { scroll-margin-top: 1rem; }
 .skip { position: absolute; left: 1rem; top: -5rem; background: var(--paper); }
@@ -121,52 +122,83 @@ h3 { font-size: 1.55rem; line-height: 1.25; }
 :lang(zh-CN) .steps p { font-size: .94rem; }
 b { color: var(--olive); overflow-wrap: anywhere; font-weight: 600; }
 .section-head { align-items: baseline; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--line); }
-.draw { margin: 2.4rem 0; }
-.draw > .meta { margin-bottom: .65rem; }
-.text-button { border: 0; padding: .5rem; background: transparent; text-decoration: underline; cursor: pointer; }
-.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; }
-/* Each envelope opens independently, so its neighbours stay sealed. */
-.choices { align-items: start; }
-.draw-note { color: var(--muted); margin: 0 0 1.2rem; }
-.choice {
-  border: 1px solid var(--line);
+/* The covers expand independently; their outer sheets share the grid baseline. */
+.draw { width: 100%; margin: clamp(2.5rem, 6vw, 5rem) auto; }
+#draw { scroll-margin-top: 8rem; }
+.draw-head { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 2rem; }
+.draw h1 { font-size: clamp(2.7rem, 5vw, 4.8rem); }
+:lang(zh-CN) .draw h1 { font-size: clamp(2rem, 3.6vw, 3.2rem); letter-spacing: .02em; }
+.draw-note { color: var(--muted); margin-top: .5rem; }
+.text-button {
+  border: 0; padding: .5rem .35rem; min-height: 44px;
+  background: transparent; font: inherit; font-size: 1rem; color: var(--olive); cursor: pointer;
+}
+.text-button span { font: 1.18rem/1 Georgia, serif; margin-right: .2rem; }
+.text-button:hover { text-decoration: underline; text-underline-offset: .28em; }
+.choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.8rem, 2vw, 1.6rem); }
+.mailpiece {
+  position: relative;
+  min-width: 0; display: flex; flex-direction: column;
+  padding: clamp(1rem, 2vw, 1.65rem);
   background: #fffdfa;
+  border: 1px solid var(--line);
 }
 .choice summary {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: .35rem;
-  padding: 1.1rem;
-  text-align: center;
-  cursor: pointer;
-  list-style: none;
+  position: relative; display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr; align-items: end;
+  gap: .7rem; min-height: 7.25rem;
+  list-style: none; cursor: pointer;
 }
+/* A sealed sheet remains one native disclosure target across its full surface. */
+.choice:not([open]) summary { position: static; }
+.choice:not([open]) summary::after { content: ""; position: absolute; inset: 0; }
+.choice:not([open]) summary::before {
+  content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1.05rem;
+  background: var(--line); pointer-events: none;
+  clip-path: polygon(0 0, 50% 93%, 100% 0, 100% 6%, 50% 100%, 0 6%);
+}
+.mailpiece:has(summary:focus-visible) { outline: 2px solid var(--olive); outline-offset: 3px; }
+.mailpiece summary:focus-visible { outline: none; }
 .choice summary::-webkit-details-marker { display: none; }
-.envelope-image {
-  width: 8.4rem;
-  aspect-ratio: 342 / 298;
-  background: url("folded-letter.webp") center / contain no-repeat;
-  /* Isolate the envelope study from the engraved figure number beside it. */
-  clip-path: polygon(0 0, 100% 0, 100% 64%, 73% 64%, 73% 100%, 0 100%);
-  mask-image: linear-gradient(to bottom, transparent, black 4%, black 95%, transparent);
-  mix-blend-mode: multiply;
-  filter: brightness(1.025);
-  transform-origin: 52% 7%;
-  transform: rotate(-4deg);
+.post-date {
+  align-self: start; color: var(--muted);
+  font: normal .9rem/1.6 Georgia, "Folio Song", serif;
+  font-variant-numeric: lining-nums tabular-nums;
 }
-.choice:nth-child(2) .envelope-image { transform: rotate(4deg); }
-.choice:nth-child(3) .envelope-image { transform: rotate(-1deg); }
-.envelope-heading { display: grid; justify-items: center; }
-.letter-label { font-size: 1.4rem; }
-.seal-action { font-size: 1rem; color: var(--rose); }
-:lang(zh-CN) .seal-action { font-size: .82rem; }
-.unsealed, .choice[open] .sealed { display: none; }
-.choice[open] .unsealed { display: inline; }
-.choice[open] summary { background: #f6f3ee; }
-.letter-sheet { margin: 0 .8rem .8rem; padding: 1.05rem; border-top: 1px solid var(--line); }
-.choose { display: inline-block; padding-top: .7rem; }
+.postage {
+  display: block; width: 4.2rem; padding: 5px;
+  background: #e6e4d6; transform: rotate(4deg);
+  mask: radial-gradient(circle at 3px 3px,transparent 1.5px,#000 1.8px) -3px -3px/7px 7px,
+        linear-gradient(#000 0 0) center/calc(100% - 6px) calc(100% - 6px) no-repeat;
+}
+.postage img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border: 1px solid #bdb79e; mix-blend-mode: multiply; }
+.letter-label { align-self: end; font-size: 1.6rem; line-height: 1.35; }
+:lang(zh-CN) .letter-label { font-size: 1.2rem; letter-spacing: .04em; }
+.fold-sign { width: 1rem; height: 1rem; position: relative; justify-self: end; align-self: end; margin-bottom: .35rem; color: var(--olive); }
+.fold-sign::before, .fold-sign::after { content: ""; position: absolute; top: 50%; width: 100%; height: 1.5px; background: currentColor; }
+.fold-sign::after { transform: rotate(90deg); }
+.choice[open] .fold-sign::after { transform: rotate(0deg); }
+.letter-sheet { border-top: 1px solid var(--line); margin: 1.05rem 0 0; padding: 1.05rem 0 .55rem; }
+.letter-sheet .letter { text-wrap: pretty; margin: 0; overflow-wrap: anywhere; }
+.choose { display: inline-flex; align-items: center; gap: .6rem; align-self: flex-start; margin-top: auto; min-height: 44px; color: var(--olive); }
+.choose { text-decoration: none; }
+.choose:hover, .choose:focus-visible { text-decoration: underline; }
+.choice:not([open]) + .choose { display: none; }
+footer small { font: normal .85rem/1.6 var(--serif); }
+:lang(zh-CN) footer small { font-size: .8rem; }
+.nav-main a, .languages a { display: inline-flex; align-items: center; min-height: 44px; }
+@media (min-width: 741px) {
+  .mailpiece:has(.choice[open]) summary {
+    grid-template-rows: auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    min-height: 4.2rem; gap: .25rem .7rem;
+  }
+  .choice[open] .post-date { grid-area: 1 / 1; }
+  .choice[open] .letter-label { grid-area: 2 / 1; }
+  .choice[open] .postage { grid-area: 1 / 2 / 3; align-self: center; width: 3.65rem; }
+  .choice[open] .fold-sign { grid-area: 1 / 3 / 3; align-self: center; margin: 0; }
+}
 .tree-draw { display: block; position: relative; margin: auto; cursor: pointer; }
 .tree-seal {
   position: absolute;
@@ -188,9 +220,10 @@ b { color: var(--olive); overflow-wrap: anywhere; font-weight: 600; }
 .branch-reply summary::marker { color: var(--olive); font-size: .72em; }
 @media (prefers-reduced-motion: no-preference) {
   .tree-seal { transition: opacity .25s; }
-  .envelope-image { transition: transform .25s; }
-  .choice summary:is(:hover,:focus-visible) .envelope-image { transform: rotate(1deg) translateY(-3px); }
-  .choice[open] .letter-sheet { animation: unfold .27s ease-out both; }
+  .postage, .fold-sign::after, .choose span { transition: transform .2s ease-out; }
+  .choice summary:is(:hover,:focus-visible) .postage { transform: rotate(0deg) translateY(-2px); }
+  .choose:is(:hover,:focus-visible) span { transform: translateX(3px); }
+  .choice[open] .letter-sheet { animation: unfold .22s ease-out both; }
   @keyframes unfold {
     from { opacity: .2; transform: translateY(-.4rem); }
     to { opacity: 1; transform: translateY(0); }
@@ -225,9 +258,10 @@ footer { justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding:
   .nav-main { gap: 1rem; }
   .languages { padding-left: .65rem; }
   .frontispiece { grid-template-columns: 1fr; gap: 1.65rem; padding: 2.5rem 0 1.8rem; }
-  .choice summary { flex-direction: row; justify-content: flex-start; gap: 1.5rem; padding: .85rem 1.3rem; }
-  .envelope-image { width: 5.2rem; }
-  .envelope-heading { justify-items: start; }
+  .choices { grid-template-columns: 1fr; }
+  .draw-head { margin-bottom: 1.3rem; }
+  .choice summary { min-height: 5rem; row-gap: .3rem; }
+  .postage { width: 2.8rem; }
   .mast-copy { max-width: 29rem; margin-inline: auto; width: 100%; }
   .specimen { width: min(100%, 23rem); justify-self: center; }
   .intro { margin: .85rem 0 1.15rem; font-size: 1.19rem; }

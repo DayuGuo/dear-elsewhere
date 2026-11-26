@@ -21,6 +21,8 @@
 | 中文 | [查看截图](docs/previews/desktop-zh.png) | [查看截图](docs/previews/mobile-zh.png) |
 | English | [View screenshot](docs/previews/desktop-en.png) | [View screenshot](docs/previews/mobile-en.png) |
 
+开启 JavaScript 时，刷新、分享网址或切换语言都能保留已拆开的信。三封展开的模拟来信可见[桌面版](docs/previews/three-letters-zh.png)及[手机版](docs/previews/three-letters-mobile-zh.png)。[八项设计复核](docs/design-review.md)记录了改版取舍及本机验证结果。
+
 ## 先看演示
 
 需要 Python 3.11 或以上版本。以下命令适用于 macOS 和 Linux。在 Debian 12 上可先执行 `sudo apt install git python3-venv`。首次安装依赖需要联网。

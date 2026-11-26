@@ -97,7 +97,8 @@ def home():
                             (ids + [None] * 3)[:3])
         by_id = {row["id"]: row for row in rows}
         drawn = [by_id[ident] for ident in ids if ident in by_id]
-        return render_template("home.html", drawn=drawn)
+        opened = set(request.args.get("open", "").split(",")[:3]) & set(by_id)
+        return render_template("home.html", drawn=drawn, opened=opened)
 
     result = page(f"""SELECT q.*,
                       (SELECT count(*) FROM posts r WHERE {MATCH_REPLY}) AS replies,
