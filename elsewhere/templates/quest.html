@@ -11,7 +11,10 @@
   {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">{{ t('Reply on X','去 X 写回信') }} ↗</a>{% endif %}
   <div class="section-head"><h2>{{ t('Replies','枝上的回信') }}</h2></div>
   {% for row in rows %}
-  <article class="branch-reply"><time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>{{ source(row,demo,letters) }}</article>
+  <details class="branch-reply" open>
+    <summary class="meta">{{ t('Reply','回信') }} · <time datetime="{{ row.created }}">{{ row.created|date }}</time></summary>
+    {{ source(row,demo,letters) }}
+  </details>
   {% else %}<p class="quiet">{{ t('This invitation is open. The first reply is still to come.','这封邀请一直敞开着，等待第一封回信。') }}</p>{% endfor %}
   {{ pager(number,more) }}
 </div>
