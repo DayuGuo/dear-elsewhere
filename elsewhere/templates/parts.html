@@ -1,0 +1,14 @@
+{% macro source(row, demo, letters) %}
+{% if demo %}<p class="letter">{{ letters[row.id] }}</p>{% else %}
+<div class="embed"><blockquote class="twitter-tweet" data-dnt="true" data-conversation="none"><a href="https://x.com/i/web/status/{{ row.id }}">Post on X · {{ row.created|date }}</a></blockquote></div>
+<a class="source" href="https://x.com/i/web/status/{{ row.id }}">Read original on X ↗</a>
+{% endif %}
+{% endmacro %}
+{% macro pager(number, more) %}
+{% if number>1 or more %}<nav class="pager" aria-label="Pages">
+{% if number>1 %}<a href="?page={{ number-1 }}">← Previous</a>{% endif %}
+<span>Page {{ number }}</span>
+{% if more %}<a href="?page={{ number+1 }}">Next →</a>{% endif %}
+</nav>{% endif %}
+{% endmacro %}
+{% macro widgets() %}<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>{% endmacro %}

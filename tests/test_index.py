@@ -1,0 +1,146 @@
+import io
+import json
+import os
+import tempfile
+import time
+import unittest
+from pathlib import Path
+from unittest.mock import Mock, patch
+from urllib.error import HTTPError, URLError
+
+from elsewhere import db
+from elsewhere.demo import seed
+from elsewhere.sync import SyncError, api, check_links, exclusive, sync
+from elsewhere.web import app
+
+
+def fixture(ident, parent=None, conversation=None):
+    return {"id": str(ident), "conversation_id": str(conversation or parent or ident),
+            "created_at": "2026-06-01T12:00:00Z", "text": "never persist this text",
+            "referenced_tweets": [{"type": "replied_to", "id": str(parent)}] if parent else [],
+            "entities": {"hashtags": [{"tag": "DearElsewhereDone" if parent else "DearElsewhereQuest"}]}}
+
+
+def page(*posts, token=None):
+    meta = {"result_count": len(posts)}
+    if token:
+        meta["next_token"] = token
+    return {"data": list(posts), "meta": meta}
+
+
+class IndexTests(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        env = patch.dict(os.environ, DEAR_DB=str(Path(tmp.name) / "db"), X_BEARER_TOKEN="test",
+                         X_MAX_PAGES="12", X_MONTHLY_READ_LIMIT="1500")
+        env.start()
+        self.addCleanup(env.stop)
+        self.conn = db.connect()
+        self.addCleanup(self.conn.close)
+        db.init(self.conn)
+        self.web = app.test_client()
+
+    def test_demo_and_public_pages(self):
+        with self.conn:
+            seed(self.conn)
+            seed(self.conn)
+        home = self.web.get("/").data
+        self.assertLess(home.index(b"last bench"), home.index(b"street sign"))
+        self.assertIn(b"2 replies", home)
+        self.assertNotIn(b"widgets.js", home)
+        self.assertIn(b"wooden shutter", self.web.get("/quest/102").data)
+        self.assertEqual(self.web.get("/about").status_code, 200)
+        self.assertEqual(self.web.get("/quest/202").status_code, 404)
+
+    def test_only_direct_replies_and_originals(self):
+        with self.conn:
+            for post in (fixture(2, 1), fixture(3, 2, 1), fixture(4, 1, 5), fixture(1), fixture(1)):
+                db.index_post(self.conn, post)
+            for ref in ("quoted", "retweeted"):
+                post = fixture(9)
+                post["referenced_tweets"] = [{"id": "1", "type": ref}]
+                db.index_post(self.conn, post)
+        self.assertIn(b"1 reply", self.web.get("/").data)
+        detail = self.web.get("/quest/1").data
+        self.assertIn(b"/status/2", detail)
+        self.assertNotIn(b"/status/3", detail)
+        self.assertNotIn(b"/status/4", detail)
+        self.assertNotIn("never persist", "\n".join(self.conn.iterdump()))
+        self.assertEqual(self.web.get("/quest/9").status_code, 404)
+
+    def test_resume_pages_and_commit_cursor_only_at_end(self):
+        ident = (int(time.time() * 1000) - 1288834974657) << 22
+        with self.conn:
+            db.set_state(self.conn, "since_id", ident - 1)
+        fetch = Mock(side_effect=[page(fixture(ident+1, ident), token="more"),
+                                  SyncError("outage"), page(fixture(ident))])
+        with self.assertRaises(SyncError):
+            sync(self.conn, fetch)
+        self.assertEqual(db.state(self.conn, "since_id"), str(ident-1))
+        sync(self.conn, fetch)
+        first, failed, resumed = [call.args[2] for call in fetch.call_args_list]
+        self.assertEqual(first["since_id"], str(ident-1))
+        self.assertEqual(failed, resumed)
+        self.assertEqual(resumed["end_time"], first["end_time"])
+        self.assertEqual(resumed["next_token"], "more")
+        self.assertEqual(db.state(self.conn, "since_id"), str(ident+1))
+        self.assertIsNone(db.state(self.conn, "batch"))
+        self.assertIn(b"1 reply", self.web.get("/").data)
+
+    def test_page_limit_and_partial_response(self):
+        with patch.dict(os.environ, X_MAX_PAGES="1"):
+            sync(self.conn, Mock(return_value=page(fixture(2), token="more")))
+        self.assertIsNone(db.state(self.conn, "since_id"))
+        with self.assertRaises(SyncError):
+            sync(self.conn, Mock(return_value={**page(), "errors": [{"title": "partial"}]}))
+        self.assertTrue(db.state(self.conn, "batch"))
+
+    def test_allowance_reserves_before_retry(self):
+        with patch.dict(os.environ, X_MONTHLY_READ_LIMIT="110"), patch("elsewhere.sync.time.sleep"), \
+             patch("elsewhere.sync.urlopen", side_effect=[URLError("timeout"),
+                   io.BytesIO(json.dumps(page(fixture(1))).encode())]) as network:
+            sync(self.conn)
+            self.assertIn("max_results=10", network.call_args.args[0].full_url)
+            with self.assertRaisesRegex(SyncError, "allowance"):
+                sync(self.conn)
+            self.assertEqual(network.call_count, 2)
+        self.assertEqual(self.conn.execute("SELECT reads FROM usage").fetchone()[0], 101)
+
+    def test_rate_limit_survives_next_job(self):
+        error = HTTPError("https://api.x.com", 429, "rate", {"Retry-After": "180"}, None)
+        with patch("elsewhere.sync.urlopen", side_effect=error) as network:
+            for _ in range(2):
+                with self.assertRaises(SyncError):
+                    sync(self.conn)
+            self.assertEqual(network.call_count, 1)
+        self.assertGreater(float(db.state(self.conn, "resume_after")), time.time())
+
+    def test_moderation_and_inconclusive_lookup(self):
+        with self.conn:
+            db.index_post(self.conn, fixture(1))
+            db.index_post(self.conn, fixture(2, 1))
+        with patch("elsewhere.sync.api", return_value={"errors": [{"type": "unknown"}]}):
+            check_links(self.conn, ["1"])
+        self.assertEqual(self.web.get("/quest/1").status_code, 200)
+        with patch("elsewhere.sync.api", return_value={"errors": [
+            {"resource_id":"1", "type":"https://api.x.com/2/problems/resource-not-found"}]}):
+            check_links(self.conn, ["1"])
+        self.assertEqual(self.web.get("/quest/1").status_code, 404)
+        self.assertNotIn(b"/status/2", self.web.get("/").data)
+        with patch("sys.argv", ["elsewhere", "remove", "1"]):
+            from elsewhere.__main__ import main
+            main()
+        with self.conn:
+            db.index_post(self.conn, fixture(1))
+        self.assertIsNone(self.conn.execute("SELECT id FROM posts WHERE id='1'").fetchone())
+
+    def test_no_search_overlap_or_mixed_demo(self):
+        with exclusive(), self.assertRaises(SyncError), exclusive():
+            pass
+        with self.conn:
+            db.index_post(self.conn, fixture(1))
+        with self.assertRaises(ValueError):
+            seed(self.conn)
+        with patch.dict(os.environ, X_BEARER_TOKEN=""), self.assertRaises(SyncError):
+            api(self.conn, "tweets", {}, 1, 1)

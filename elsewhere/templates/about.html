@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}About · Dear Elsewhere{% endblock %}
+{% block main %}<div class="reading about"><p class="chinese" lang="zh">致 别 处</p><h1>About the project</h1>
+<p class="lede">An invitation to notice the world.</p><p lang="zh">一份重新观察世界的邀请。</p>
+<p>Dear Elsewhere is a small, open-ended game played in the world and shared on X. Anyone can send an invitation. Someone elsewhere can go outside, follow their curiosity, and write back.</p>
+<h2 id="participate">How to take part</h2>
+<ol><li><strong>Send an invitation.</strong> Write an original public post on X inviting someone to explore something where they live. Add <b>#DearElsewhereQuest</b>.</li>
+<li><strong>Write back.</strong> Try an invitation in the real world. Reply directly to its original post with words, a photograph, or a video. Add <b>#DearElsewhereDone</b>.</li></ol>
+<p>Invitations stay open. Take your time and interpret them your own way. There are no deadlines, scores, or correct answers.</p>
+<h2>A public index</h2><p>The site checks public posts hourly and connects invitations with their replies. You can play entirely on X. The index keeps post identifiers, dates, and connections. The writing and media stay with their authors on X. Opening a page with embedded posts also connects your browser to X.</p>
+{% if contact %}<p>For a removal or a broken link, email <a href="mailto:{{ contact }}">{{ contact }}</a> with the post URL.</p>{% endif %}
+</div>{% endblock %}

@@ -1,0 +1,18 @@
+[Unit]
+Description=Sync Dear Elsewhere public post identifiers
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=dear-elsewhere
+Group=dear-elsewhere
+WorkingDirectory=/opt/dear-elsewhere
+StateDirectory=dear-elsewhere
+EnvironmentFile=/etc/dear-elsewhere.env
+ExecStart=/opt/dear-elsewhere/.venv/bin/python -m elsewhere sync
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes

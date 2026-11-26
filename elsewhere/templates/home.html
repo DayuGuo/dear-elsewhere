@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "parts.html" import source, pager, widgets %}
+{% block main %}
+<section class="mast">
+<div><p class="chinese" lang="zh">致 别 处</p><h1>Dear <em>Elsewhere,</em></h1><p class="lede">An invitation to notice the world.</p></div>
+<div class="stamp" aria-hidden="true"><div class="stamp-art"></div></div>
+</section>
+<section><div class="section-head"><h2>Invitations</h2><span class="meta">{{ 'Fictional preview' if demo else 'Newest first' }}</span></div>
+{% for row in rows %}<article class="entry"><time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>
+<div>{{ source(row,demo,letters) }}
+<a class="action" href="{{ url_for('quest',ident=row.id) }}">Open invitation <span aria-hidden="true">→</span></a></div>
+<span class="meta count">{{ row.replies }} {{ 'reply' if row.replies == 1 else 'replies' }}</span></article>
+{% else %}<div class="empty"><p>The first envelope is still to come.</p><a class="action" href="/about#participate">Send an invitation →</a></div>{% endfor %}
+{{ pager(number,more) }}</section>
+{% if rows and not demo %}{{ widgets() }}{% endif %}{% endblock %}
