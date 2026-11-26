@@ -11,7 +11,11 @@
 <a href="#main" class="skip">Skip to content</a>
 <header class="top wrapper">
 <a class="brand" href="/"><i aria-hidden="true" class="envelope"></i> Dear Elsewhere</a>
-<nav aria-label="Main navigation"><a href="/" {% if request.endpoint in ('home','quest') %}aria-current="page"{% endif %}>Invitations</a><a href="/about" {% if request.endpoint=='about' %}aria-current="page"{% endif %}>About</a></nav>
+<nav aria-label="Main navigation">
+  <a href="/#how-to-play">How to play</a>
+  <a href="/#branches">Letters</a>
+  <a href="/about" {% if request.endpoint=='about' %}aria-current="page"{% endif %}>About</a>
+</nav>
 </header>
 <main id="main" class="wrapper">{% block main %}{% endblock %}</main>
 <footer class="wrapper"><span>From somewhere, to someone, with curiosity.</span><span lang="zh">致别处</span></footer>

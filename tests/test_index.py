@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 from urllib.error import HTTPError, URLError
+from urllib.parse import parse_qs, urlsplit
 
 from elsewhere import db
 from elsewhere.demo import seed
@@ -52,6 +53,46 @@ class IndexTests(unittest.TestCase):
         self.assertIn(b"wooden shutter", self.web.get("/quest/102").data)
         self.assertEqual(self.web.get("/about").status_code, 200)
         self.assertEqual(self.web.get("/quest/202").status_code, 404)
+
+    def test_draw_is_distinct_stable_and_uses_visible_invitations_only(self):
+        with self.conn:
+            seed(self.conn)
+            self.conn.execute("UPDATE posts SET hidden=1 WHERE id='105'")
+        response = self.web.get("/?draw=1")
+        self.assertEqual(response.status_code, 303)
+        self.assertTrue(response.cache_control.no_store)
+        location = urlsplit(response.location)
+        ids = parse_qs(location.query)["picks"][0].split(",")
+        self.assertEqual(len(ids), 3)
+        self.assertEqual(len(set(ids)), 3)
+        self.assertTrue(set(ids) <= {"101", "102", "103", "104", "106"})
+        self.assertEqual(location.fragment, "draw")
+        choice = self.web.get(response.location).data
+        self.assertEqual(choice, self.web.get(response.location).data)
+        self.assertEqual(choice.count(b"Choose this invitation"), 3)
+        with self.conn:
+            self.conn.execute("UPDATE posts SET hidden=1 WHERE id=?", (ids[0],))
+        self.assertEqual(self.web.get(response.location).data.count(b"Choose this invitation"), 2)
+
+    def test_empty_and_small_draws(self):
+        empty = self.web.get("/?draw=1", follow_redirects=True)
+        self.assertIn(b"no invitations available", empty.data)
+        with self.conn:
+            db.index_post(self.conn, fixture(1))
+        single = self.web.get("/?draw=1", follow_redirects=True)
+        self.assertEqual(single.data.count(b"Choose this invitation"), 1)
+        self.assertIn(b"/status/1", single.data)
+
+    def test_branch_preview_uses_latest_visible_direct_reply(self):
+        with self.conn:
+            for post in (fixture(1), fixture(2, 1), fixture(3, 1), fixture(4, 1), fixture(5, 2, 1)):
+                db.index_post(self.conn, post)
+            self.conn.execute("UPDATE posts SET hidden=1 WHERE id='4'")
+        home = self.web.get("/").data
+        self.assertIn(b"/status/3", home)
+        for ident in (2, 4, 5):
+            self.assertNotIn(f"/status/{ident}".encode(), home)
+        self.assertIn(b"/status/2", self.web.get("/quest/1").data)
 
     def test_only_direct_replies_and_originals(self):
         with self.conn:

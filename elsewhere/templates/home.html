@@ -1,15 +1,74 @@
 {% extends "base.html" %}
 {% from "parts.html" import source, pager, widgets %}
 {% block main %}
+{% if drawn is none %}
 <section class="mast">
-<div><p class="chinese" lang="zh">致 别 处</p><h1>Dear <em>Elsewhere,</em></h1><p class="lede">An invitation to notice the world.</p></div>
-<div class="stamp" aria-hidden="true"><div class="stamp-art"></div></div>
+  <div class="mast-copy">
+    <p class="chinese" lang="zh">致别处</p>
+    <h1>An invitation to<br><em>notice the world.</em></h1>
+    <p class="intro">Draw a letter from a stranger, try their invitation where you live, and write back on X with what you find.</p>
+    <div class="mast-actions">
+      <form action="/" method="get"><button name="draw" value="1" class="button">Draw three invitations <span aria-hidden="true">↗</span></button></form>
+      <a class="action" href="#how-to-play">How to play ↓</a>
+    </div>
+  </div>
+  <img class="tree-art" src="{{ url_for('static',filename='letter-tree.webp') }}" width="1080" height="720" alt="">
 </section>
-<section><div class="section-head"><h2>Invitations</h2><span class="meta">{{ 'Fictional preview' if demo else 'Newest first' }}</span></div>
-{% for row in rows %}<article class="entry"><time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>
-<div>{{ source(row,demo,letters) }}
-<a class="action" href="{{ url_for('quest',ident=row.id) }}">Open invitation <span aria-hidden="true">→</span></a></div>
-<span class="meta count">{{ row.replies }} {{ 'reply' if row.replies == 1 else 'replies' }}</span></article>
-{% else %}<div class="empty"><p>The first envelope is still to come.</p><a class="action" href="/about#participate">Send an invitation →</a></div>{% endfor %}
-{{ pager(number,more) }}</section>
-{% if rows and not demo %}{{ widgets() }}{% endif %}{% endblock %}
+{% endif %}
+
+{% if drawn is not none %}
+<section id="draw" class="draw">
+  {% if demo %}<p class="meta">Fictional preview</p>{% endif %}
+  <div class="section-head"><h1>Choose an invitation</h1>
+    {% if drawn %}<form method="get" action="/"><button class="text-button" name="draw" value="1">Draw again ↻</button></form>{% endif %}
+  </div>
+  {% if drawn %}
+    {% if drawn|length < 3 %}<p class="quiet">Only {{ drawn|length }} {{ 'letter is' if drawn|length == 1 else 'letters are' }} available in this draw.</p>{% endif %}
+    <div class="choices">
+      {% for row in drawn %}
+      <article class="choice">
+        <time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>
+        {{ source(row,demo,letters) }}
+        <a class="choose" href="{{ url_for('quest',ident=row.id) }}">Choose this invitation →</a>
+      </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>There are no invitations available in this draw.</p>
+    <a class="action" href="#how-to-play">See how to send one ↓</a>
+  {% endif %}
+</section>
+{% endif %}
+
+<section id="how-to-play" class="guide">
+  <h2>How to play</h2>
+  <ol class="steps">
+    <li><h3>Pick a letter</h3><p>Draw three invitations and choose one that makes you curious. Take it with you on your next walk.</p></li>
+    <li><h3>Write back</h3><p>Reply directly to the original post on X with a few words, a photo, or a video. Add <b>#DearElsewhereDone</b>.</p></li>
+    <li><h3>Send your own</h3><p>What would you love to see from elsewhere? Ask in an original public post on X with <b>#DearElsewhereQuest</b>.</p></li>
+  </ol>
+</section>
+
+<section id="branches">
+  <div class="section-head"><h2>Letters &amp; replies</h2><span class="meta">{{ 'Fictional preview' if demo else 'Newest invitations first' }}</span></div>
+  {% for row in rows %}
+  <article class="branch">
+    <div class="branch-root">
+      <p class="meta">Invitation · <time datetime="{{ row.created }}">{{ row.created|date }}</time></p>
+      {{ source(row,demo,letters) }}
+      <a class="action" href="{{ url_for('quest',ident=row.id) }}">Open invitation · {{ row.replies }} {{ 'reply' if row.replies == 1 else 'replies' }} →</a>
+    </div>
+    {% if row.reply_id %}
+    <div class="branch-reply">
+      <p class="meta">Latest reply · <time datetime="{{ row.reply_created }}">{{ row.reply_created|date }}</time></p>
+      {{ source({'id':row.reply_id,'created':row.reply_created},demo,letters) }}
+    </div>
+    {% endif %}
+  </article>
+  {% else %}
+  <div class="empty"><p>The first letter is still to come.</p><a class="action" href="#how-to-play">Send an invitation ↑</a></div>
+  {% endfor %}
+  {{ pager(number,more,'#branches') }}
+</section>
+{% if (rows or drawn) and not demo %}{{ widgets() }}{% endif %}
+{% endblock %}

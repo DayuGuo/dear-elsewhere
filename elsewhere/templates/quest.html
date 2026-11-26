@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 {% from "parts.html" import source, pager, widgets %}
 {% block title %}Invitation of {{ invitation.created|date }} · Dear Elsewhere{% endblock %}
-{% block main %}<div class="reading">
-<a class="back" href="/">← All invitations</a>
-<p class="meta">{{ 'Fictional preview · ' if demo }}{{ invitation.created|date }}</p>
-<h1>Invitation</h1>{{ source(invitation,demo,letters) }}
-{% if not demo %}<p>To take part, reply to the original on X with <b>#DearElsewhereDone</b>.</p>{% endif %}
-<div class="section-head"><h2>Replies</h2></div>
-{% for row in rows %}<article class="reply"><time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>{{ source(row,demo,letters) }}</article>
-{% else %}<p class="quiet">This invitation is open. The first reply is still to come.</p>{% endfor %}
-{{ pager(number,more) }}</div>{% if not demo %}{{ widgets() }}{% endif %}{% endblock %}
+{% block main %}
+<div class="reading">
+  <a class="back" href="/#branches">← All letters</a>
+  <p class="meta">{{ 'Fictional preview · ' if demo }}{{ invitation.created|date }}</p>
+  <h1>Invitation</h1>
+  <div class="branch-root">{{ source(invitation,demo,letters) }}</div>
+  <p>Try this invitation where you live. Reply directly to the original post on X with <b>#DearElsewhereDone</b>.</p>
+  {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">Reply on X ↗</a>{% endif %}
+  <div class="section-head"><h2>Replies</h2></div>
+  {% for row in rows %}
+  <article class="branch-reply"><time class="meta" datetime="{{ row.created }}">{{ row.created|date }}</time>{{ source(row,demo,letters) }}</article>
+  {% else %}<p class="quiet">This invitation is open. The first reply is still to come.</p>{% endfor %}
+  {{ pager(number,more) }}
+</div>
+{% if not demo %}{{ widgets() }}{% endif %}
+{% endblock %}
