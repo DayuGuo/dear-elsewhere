@@ -40,7 +40,6 @@ body {
 :lang(zh-CN) body { font-size: 1.05rem; line-height: 1.85; }
 .wrapper { width: min(calc(100% - 4.5rem), 74rem); margin-inline: auto; }
 a { color: inherit; text-underline-offset: .24em; }
-a:hover, .text-button span { font: 1.18rem/1 Georgia, serif; margin-right: .2rem; }
 .text-button:hover { color: var(--rose); }
 :focus-visible { outline: 2px solid var(--rose); outline-offset: 4px; }
 section[id] { scroll-margin-top: 1rem; }
@@ -56,7 +55,7 @@ section[id] { scroll-margin-top: 1rem; }
   border-bottom: 1px solid var(--line);
 }
 .brand { text-decoration: none; }
-.brand img { display: block; width: auto; height: 2.1rem; }
+.brand img { display: block; width: auto; height: 2.8rem; }
 .nav-main { gap: 1.6rem; margin-left: auto; }
 .nav-main a, .languages a { text-decoration: none; }
 .nav-main, .languages { font: 600 1.05rem/1.6 var(--serif); }
@@ -275,7 +274,7 @@ footer { justify-content: space-between; gap: 1rem; margin-top: 3.5rem; padding:
 }
 @media (max-width: 480px) {
   .top { gap: .7rem; }
-  .brand img { height: clamp(1.4rem, 6.4vw, 1.8rem); }
+  .brand img { height: clamp(1.9rem, 8.25vw, 2.25rem); }
   .nav-main { gap: .7rem; }
   .languages { padding-left: .7rem; }
   .button { font-size: 1rem; }

@@ -8,7 +8,16 @@
 
 ## 界面与语言
 
-项目标志以信封右上角为枝梢，接一片叶。中英文页眉使用各自的矢量字标，浏览器标签页使用独立图形。[图形](elsewhere/static/brand/mark.svg) · [中文字标](elsewhere/static/brand/logo-zh.svg) · [英文字标](elsewhere/static/brand/logo-en.svg)
+项目标志是一枚野蔷薇邮票。票面借用十九世纪博物学图谱的铜版排线与淡彩，墨绿铭条上印有植物学名 *Rosa canina*。中英文页眉各有一份可独立使用的组合标，浏览器标签页使用专为小尺寸绘制的花形简版。[邮票原图](elsewhere/static/brand/mark.svg) · [中文组合标](elsewhere/static/brand/logo-zh.svg) · [英文组合标](elsewhere/static/brand/logo-en.svg) · [图标](elsewhere/static/brand/favicon.svg)
+
+<details>
+<summary>邮票插画制作记录</summary>
+
+花枝插画采用内置 imagegen 生成，齿孔边框、铭条、字标组合和小尺寸图标另行绘制。插画提示词如下。
+
+> Botanical specimen artwork for the center of a small postage stamp. A single flowering sprig of Rosa canina on plain uniform warm white. One large open five-petalled dog rose in three-quarter view, a golden cluster of stamens, one small closed bud, two serrated leaves and a short gently arched stem. Compact vertical arrangement with strong silhouette and a large blossom. Authentic 19th-century natural history plate, delicate dark olive copperplate outlines and directional burin hatching, pale dusty pink watercolor on petals, muted sage leaves. Quiet, lucid and finely observed. Fill the composition with the sprig. No text, numbers, border, shadows, postage marks or additional specimens.
+
+</details>
 
 页面采用从挂信树插画空白处取样的暖白色（`#FCF9F6`）。点枝头的信封或“从树上取三封信”，会随机取到最多三封来信。每封都可以独立拆开、折起，读完再选一封带出门。枝上的回信也可以逐封展开与收起。拆信使用浏览器原生控件，可以用键盘操作；系统开启减少动态效果时，页面直接显示展开结果。[观看模拟数据的取信与拆信演示](docs/previews/picking-letters.mp4)
 
