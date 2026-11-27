@@ -210,8 +210,8 @@ button.hashtag:hover { text-decoration-style: solid; }
   .top { gap: .55rem; padding-block: .65rem; }
   .brand img { height: clamp(1.8rem, 7vw, 2.4rem); }
   .top nav a { font-size: .81rem; }
-  .frontispiece { grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); grid-template-areas: "title tree" "intro intro" "actions actions"; gap: 0 .45rem; }
-  .frontispiece h1 { align-self: center; font-size: clamp(2rem, 8.5vw, 3.8rem); }
+  .frontispiece { grid-template-columns: minmax(0,1.3fr) minmax(0,.7fr); grid-template-areas: "title tree" "intro intro" "actions actions"; gap: 0 .45rem; }
+  .frontispiece h1 { align-self: center; font-size: clamp(1.65rem, 7.2vw, 3.3rem); }
   :lang(zh-CN) .frontispiece h1 { font-size: clamp(1.35rem, 5.8vw, 2.3rem); }
   .tree-draw { max-width: 13rem; }
   .choices { grid-template-columns: minmax(0,1fr); }
