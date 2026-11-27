@@ -27,12 +27,18 @@
   --olive: #47553a;
   --muted: #6b604e;
   --rose: #814d40;
-  --serif: Cormorant, "Folio Song", "Songti SC", Georgia, serif;
-  --song: "Folio Song", "Songti SC", SimSun, serif;
+  --han: "Folio Song", "Songti SC";
+  --serif: Cormorant, var(--han), Georgia, serif;
+  --song: var(--han), SimSun, serif;
   --ui: system-ui, sans-serif;
   --corner: .55rem;
   --inset: clamp(1.1rem, 3.8vw, 3.4rem);
 }
+/* Prefer a full native Chinese face on touch devices, including for incoming letters. */
+@media (pointer: coarse) {
+  :root { --han: "Songti SC", "PingFang SC", "Folio Song"; }
+}
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 * { box-sizing: border-box; }
 body { margin: 0; color: var(--ink); background: var(--paper); font: 500 1.24rem/1.48 var(--serif); }
 :lang(zh-CN) body { font-size: 1rem; line-height: 1.8; }
