@@ -15,6 +15,7 @@ function loadWidgets() {
 }
 
 function widget(element) {
+  element.classList.add("uses-widget");
   loadWidgets().then(api => api.widgets.createTweet(element.dataset.post, element, {
     cards: element.hasAttribute("data-photos") ? undefined : "hidden",
     conversation: "none",
@@ -43,16 +44,25 @@ function readablePost(body) {
 }
 async function embed(element) {
   const card = element.closest(".thread-card");
-  if (element.hasAttribute("data-photos")) {
+  if (!card && element.hasAttribute("data-photos")) {
     widget(element);
     return;
+  }
+  const photo = element.querySelector(".photo-thumb");
+  const img = photo?.querySelector("img");
+  if (img) {
+    img.addEventListener("error", () => photo.remove(), { once: true });
+    if (img.complete && !img.naturalWidth) photo.remove();
   }
   const original = "https://x.com/i/web/status/" + element.dataset.post;
   const endpoint = new URL("https://publish.x.com/oembed");
   endpoint.search = new URLSearchParams({ url: "https://twitter.com/i/status/" + element.dataset.post, omit_script: "true", hide_thread: "true", dnt: "true" });
   try {
     const response = await fetch(endpoint, { credentials: "omit", cache: "no-store" });
-    if (!response.ok) throw new Error("Preview unavailable");
+    if (!response.ok) {
+      if ([403, 404, 410].includes(response.status)) photo?.remove();
+      throw new Error("Preview unavailable");
+    }
     const post = await response.json();
     // Read text in an inert template. Never insert remote markup into the page.
     const template = document.createElement("template");
@@ -69,6 +79,11 @@ async function embed(element) {
       }
       return;
     }
+    if (photo) {
+      for (const link of body.querySelectorAll("a")) {
+        if (/^pic\.(twitter|x)\.com\//i.test(link.textContent.trim())) link.remove();
+      }
+    }
     const excerpt = document.createElement("a");
     excerpt.className = "excerpt";
     excerpt.href = element.closest(".thread-reply") ? original : card.querySelector(".task-label a").href;
@@ -78,10 +93,15 @@ async function embed(element) {
     author.className = "excerpt-author";
     author.href = original;
     author.textContent = post.author_name;
-    element.classList.add("has-excerpt");
-    element.replaceChildren(excerpt, author);
+    element.prepend(excerpt);
+    element.append(author);
   } catch {
-    widget(element);
+    if (!card) return widget(element);
+    const link = document.createElement("a");
+    link.className = "excerpt-author";
+    link.href = original;
+    link.textContent = document.documentElement.lang === "zh-CN" ? "在 X 阅读原帖 ↗" : "Read on X ↗";
+    element.prepend(link);
   }
 }
 

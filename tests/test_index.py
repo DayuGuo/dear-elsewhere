@@ -211,17 +211,28 @@ class IndexTests(unittest.TestCase):
         result["includes"] = {"media": [{"media_key": k, "type": typ}
                                        for k, typ in (("a", "photo"), ("b", "photo"),
                                                       ("v", "video"), ("g", "animated_gif"))]}
+        for m in result["includes"]["media"]:
+            m["url"] = f"https://pbs.twimg.com/media/test_{m['media_key']}.jpg"
+        result["includes"]["media"][0]["url"] = "https://pbs.twimg.com/media/test_a?format=jpg&name=large"
         fetch = Mock(return_value=result)
         sync(self.conn, fetch)
+        self.assertIn("url", fetch.call_args.args[2]["media.fields"].split(","))
+        refs = dict(self.conn.execute("SELECT id, photo_ref FROM posts"))
+        self.assertEqual(refs, {"1": "test_a.jpg", "2": None, "3": "test_a.jpg",
+                                "4": "test_a.jpg", "5": None})
         self.assertEqual(fetch.call_args.args[2]["expansions"], "attachments.media_keys")
         for path in ("/", "/?picks=1&open=1", "/quest/1"):
             html = self.web.get(path).get_data(as_text=True)
             self.assertIn('data-post="1" data-photos', html)
             self.assertEqual(html.count(" data-photos"), 1)
+        thumbnail = 'src="https://pbs.twimg.com/media/test_a?format=jpg&amp;name=small"'
+        self.assertEqual(self.web.get("/").text.count(thumbnail), 1)
+        self.assertNotIn(thumbnail, self.web.get("/quest/1").text)
         # Rechecking a reply can enable its photos on both the branch and its detail page.
         gif["attachments"] = {"media_keys": ["a"]}
         with patch("elsewhere.sync.api", return_value={"data": [gif], "includes": result["includes"]}):
             check_links(self.conn, ["5"])
+        self.assertEqual(self.web.get("/").text.count(thumbnail), 2)
         for path in ("/", "/quest/1"):
             self.assertIn('data-post="5" data-photos', self.web.get(path).get_data(as_text=True))
 

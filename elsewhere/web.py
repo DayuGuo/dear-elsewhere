@@ -154,7 +154,8 @@ def home():
 
     result = page(f"""SELECT q.*,
                       (SELECT count(*) FROM posts r WHERE {MATCH_REPLY}) AS replies,
-                      preview.id AS reply_id, preview.created AS reply_created, preview.show_photos AS reply_photos
+                      preview.id AS reply_id, preview.created AS reply_created, preview.show_photos AS reply_photos,
+                      preview.photo_ref AS reply_photo_ref
                       FROM posts q LEFT JOIN posts preview ON preview.id = (
                           SELECT r.id FROM posts r WHERE {MATCH_REPLY}
                           ORDER BY r.created DESC, length(r.id) DESC, r.id DESC LIMIT 1

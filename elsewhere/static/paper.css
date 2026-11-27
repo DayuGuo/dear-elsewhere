@@ -73,6 +73,8 @@ a { color: inherit; text-underline-offset: .2em; }
 .button, .text-button { border: 0; cursor: pointer; border-radius: .35rem; }
 .button { display: inline-flex; gap: .7rem; align-items: center; justify-content: center; min-height: 44px; padding: .65rem 1.1rem; color: #fffefa; background: var(--olive); text-decoration: none; }
 .button:hover { background: #35452b; }
+.compose-invitation { background: var(--leaf); color: var(--olive); }
+.compose-invitation:hover { background: #dfe4d5; }
 .text-button { min-height: 44px; padding: .5rem .8rem; background: var(--leaf); color: var(--olive); }
 .text-button:hover { background: #dfe4d5; }
 .meta, .post-date, .quiet { color: var(--muted); }
@@ -222,7 +224,7 @@ button.hashtag:hover { text-decoration-style: solid; }
   .compose { gap: .7rem; }
 }
 @media (min-width: 741px) and (max-width: 62rem) {
-  .choices:has([data-photos]) { grid-template-columns: 1fr; max-width: 38rem; margin-inline: auto; }
+  .choices:has([data-photos], .uses-widget) { grid-template-columns: 1fr; max-width: 38rem; margin-inline: auto; }
 }
 
 .thread-grid {
@@ -266,8 +268,9 @@ button.hashtag:hover { text-decoration-style: solid; }
 .thread-card:has(.more-replies) .thread-reply { margin-bottom: 0; border-radius: 0; }
 .more-replies { display: block; padding-top: .55rem; color: var(--olive); text-decoration: none; }
 .embed { zoom: .9; width: auto; }
-.thread-card .embed { zoom: .84; }
-.thread-card .has-excerpt { zoom: 1; overflow: visible; }
+.thread-card .embed { zoom: 1; overflow: visible; }
+.photo-thumb { display: block; width: fit-content; max-width: 100%; margin-top: .45rem; }
+.photo-thumb img { display: block; width: auto; max-width: 100%; max-height: 11rem; border-radius: .3rem; }
 .excerpt, .thread-card .letter {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5;
   overflow: hidden; overflow-wrap: anywhere; white-space: pre-line; text-decoration: none;
@@ -287,10 +290,4 @@ button.hashtag:hover { text-decoration-style: solid; }
   .thread-card :is(.post-origin,time,.excerpt-author,.more-replies) { font-size: .71rem; }
   .thread-card :is(.task-label,.reply-label) { font-size: .76rem; }
   :lang(zh-CN) :is(.excerpt,.thread-card .letter) { font-size: .98rem; }
-  .thread-post, .thread-reply { container-type: inline-size; }
-  /* Photo widgets need 250 CSS pixels; text previews retain normal type size. */
-  .thread-card .embed:not(.has-excerpt) { zoom: .8; }
-  @container (max-width: 200px) { .thread-card .embed:not(.has-excerpt) { zoom: .65; } }
-  @container (max-width: 163px) { .thread-card .embed:not(.has-excerpt) { zoom: .55; } }
-  @container (max-width: 138px) { .thread-card .embed:not(.has-excerpt) { zoom: .48; } }
 }

@@ -3,6 +3,7 @@ import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import parse_qs
 
 DEFAULT_DB = Path("instance/index.sqlite3")
 SCHEMA = """
@@ -13,7 +14,8 @@ CREATE TABLE IF NOT EXISTS posts (
     parent TEXT,
     conversation TEXT,
     hidden INTEGER NOT NULL DEFAULT 0,
-    show_photos INTEGER NOT NULL DEFAULT 0
+    show_photos INTEGER NOT NULL DEFAULT 0,
+    photo_ref TEXT
 );
 CREATE INDEX IF NOT EXISTS invitations ON posts(kind, hidden, created DESC, id DESC);
 CREATE INDEX IF NOT EXISTS replies ON posts(parent, hidden, created, id);
@@ -38,8 +40,11 @@ def init(conn):
     conn.executescript(SCHEMA)
     with conn:
         conn.execute("BEGIN IMMEDIATE")
-        if "show_photos" not in {row[1] for row in conn.execute("PRAGMA table_info(posts)")}:
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(posts)")}
+        if "show_photos" not in columns:
             conn.execute("ALTER TABLE posts ADD COLUMN show_photos INTEGER NOT NULL DEFAULT 0")
+        if "photo_ref" not in columns:
+            conn.execute("ALTER TABLE posts ADD COLUMN photo_ref TEXT")
 
 
 def state(conn, key):
@@ -57,14 +62,23 @@ def post_id(value):
     return value
 
 
-def show_photos(post, media_types):
+def photo_metadata(post, media):
     keys = post.get("attachments", {}).get("media_keys", [])
-    return bool(keys) and all(media_types.get(key) == "photo" for key in keys) and not any(
-        ref["type"] == "quoted" for ref in post.get("referenced_tweets", [])
-    )
+    if not keys or any(ref["type"] == "quoted" for ref in post.get("referenced_tweets", [])):
+        return False, None
+    photos = [media[key] for key in keys if media.get(key, {}).get("type") == "photo"]
+    # Retain only the first usable X image filename; never use video poster frames.
+    for photo in photos:
+        path, _, query = (photo.get("url") or "").partition("?")
+        match = re.fullmatch(r"https://pbs\.twimg\.com/media/([A-Za-z0-9_-]+)(?:\.([a-z]+))?", path)
+        if match:
+            ext = match[2] or parse_qs(query).get("format", [""])[0]
+            if ext in ("jpg", "jpeg", "png", "webp"):
+                return len(photos) == len(keys), f"{match[1]}.{ext}"
+    return len(photos) == len(keys), None
 
 
-def index_post(conn, post, media_types=None):
+def index_post(conn, post, media=None):
     ident = post_id(post["id"])
     conversation = post_id(post["conversation_id"]) if post.get("conversation_id") else None
     refs = post.get("referenced_tweets", [])
@@ -89,8 +103,8 @@ def index_post(conn, post, media_types=None):
     if created.utcoffset() is None:
         raise ValueError("missing timezone")
     conn.execute("""
-        INSERT INTO posts(id,kind,created,parent,conversation,show_photos)
-        SELECT ?,?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM removed WHERE id=?)
-        ON CONFLICT(id) DO UPDATE SET show_photos=excluded.show_photos
+        INSERT INTO posts(id,kind,created,parent,conversation,show_photos,photo_ref)
+        SELECT ?,?,?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM removed WHERE id=?)
+        ON CONFLICT(id) DO UPDATE SET show_photos=excluded.show_photos, photo_ref=excluded.photo_ref
     """, (ident, kind, created.astimezone(timezone.utc).isoformat(), parent, conversation,
-          show_photos(post, media_types or {}), ident))
+          *photo_metadata(post, media or {}), ident))

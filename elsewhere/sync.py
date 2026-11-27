@@ -13,11 +13,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from .db import DEFAULT_DB, index_post, post_id, set_state, show_photos, state
+from .db import DEFAULT_DB, index_post, photo_metadata, post_id, set_state, state
 
 QUERY = "(#DearElsewhereQuest OR #DearElsewhereDone) -is:retweet"
 FIELDS = "created_at,conversation_id,referenced_tweets,entities,note_tweet,withheld,attachments"
-MEDIA_PARAMS = {"expansions": "attachments.media_keys", "media.fields": "type"}
+MEDIA_PARAMS = {"expansions": "attachments.media_keys", "media.fields": "type,url"}
 LOG = logging.getLogger(__name__)
 
 
@@ -107,8 +107,8 @@ def utc(seconds):
     return datetime.fromtimestamp(seconds, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def media_types(result):
-    return {m["media_key"]: m.get("type") for m in result.get("includes", {}).get("media", [])
+def media_by_key(result):
+    return {m["media_key"]: m for m in result.get("includes", {}).get("media", [])
             if m.get("media_key")}
 
 
@@ -152,11 +152,11 @@ def sync(conn, fetch=api):
         nxt = meta.get("next_token")
         if nxt and nxt == batch.get("next_token"):
             raise SyncError("repeated pagination token")
-        types = media_types(result)
+        media = media_by_key(result)
         with conn:
             for row in rows:
                 highest = max(highest, int(post_id(row["id"])))
-                index_post(conn, row, types)
+                index_post(conn, row, media)
             if nxt:
                 batch.update(next_token=nxt, highest=str(highest))
                 set_state(conn, "batch", json.dumps(batch))
@@ -186,9 +186,9 @@ def check_links(conn, ids):
             if ident in ids:
                 unavailable.add(ident)
     with conn:
-        types = media_types(result)
-        conn.executemany("UPDATE posts SET show_photos=? WHERE id=?",
-                         [(show_photos(p, types), p["id"]) for p in result.get("data", [])])
+        media = media_by_key(result)
+        conn.executemany("UPDATE posts SET show_photos=?, photo_ref=? WHERE id=?",
+                         [(*photo_metadata(p, media), p["id"]) for p in result.get("data", [])])
         conn.executemany("UPDATE posts SET hidden=1 WHERE id=?", [(i,) for i in unavailable])
     LOG.info("checked=%d unavailable=%d inconclusive=%d", len(ids), len(unavailable),
              len(set(ids) - found - unavailable))
