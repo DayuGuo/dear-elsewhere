@@ -2,7 +2,7 @@
 {% if demo %}
   <p class="letter">{{ letters[row.id] }}</p>
 {% else %}
-  <div class="embed" data-post="{{ row.id }}"></div>
+  <div class="embed" data-post="{{ row.id }}"{% if row.show_photos %} data-photos{% endif %}></div>
   <a class="source" href="https://x.com/i/web/status/{{ row.id }}">{{ t('Read original on X','在 X 阅读原帖') }} ↗</a>
 {% endif %}
 {% endmacro %}
@@ -14,4 +14,4 @@
 {% if more %}<a href="?page={{ number+1 }}{{ anchor }}">{{ t('Next','下一页') }} →</a>{% endif %}
 </nav>{% endif %}
 {% endmacro %}
-{% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js') }}"></script>{% endmacro %}
+{% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js',v='photos') }}"></script>{% endmacro %}

@@ -16,6 +16,7 @@ function loadWidgets() {
 
 function embed(element) {
   loadWidgets().then(api => api.widgets.createTweet(element.dataset.post, element, {
+    cards: element.hasAttribute("data-photos") ? undefined : "hidden",
     conversation: "none",
     dnt: true,
     lang: document.documentElement.lang === "zh-CN" ? "zh-cn" : "en",

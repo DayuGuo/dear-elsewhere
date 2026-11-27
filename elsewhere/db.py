@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS posts (
     created TEXT NOT NULL,
     parent TEXT,
     conversation TEXT,
-    hidden INTEGER NOT NULL DEFAULT 0
+    hidden INTEGER NOT NULL DEFAULT 0,
+    show_photos INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS invitations ON posts(kind, hidden, created DESC, id DESC);
 CREATE INDEX IF NOT EXISTS replies ON posts(parent, hidden, created, id);
@@ -35,6 +36,10 @@ def connect():
 
 def init(conn):
     conn.executescript(SCHEMA)
+    with conn:
+        conn.execute("BEGIN IMMEDIATE")
+        if "show_photos" not in {row[1] for row in conn.execute("PRAGMA table_info(posts)")}:
+            conn.execute("ALTER TABLE posts ADD COLUMN show_photos INTEGER NOT NULL DEFAULT 0")
 
 
 def state(conn, key):
@@ -52,7 +57,14 @@ def post_id(value):
     return value
 
 
-def index_post(conn, post):
+def show_photos(post, media_types):
+    keys = post.get("attachments", {}).get("media_keys", [])
+    return bool(keys) and all(media_types.get(key) == "photo" for key in keys) and not any(
+        ref["type"] == "quoted" for ref in post.get("referenced_tweets", [])
+    )
+
+
+def index_post(conn, post, media_types=None):
     ident = post_id(post["id"])
     conversation = post_id(post["conversation_id"]) if post.get("conversation_id") else None
     refs = post.get("referenced_tweets", [])
@@ -77,7 +89,8 @@ def index_post(conn, post):
     if created.utcoffset() is None:
         raise ValueError("missing timezone")
     conn.execute("""
-        INSERT INTO posts(id,kind,created,parent,conversation)
-        SELECT ?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM removed WHERE id=?)
-        ON CONFLICT(id) DO NOTHING
-    """, (ident, kind, created.astimezone(timezone.utc).isoformat(), parent, conversation, ident))
+        INSERT INTO posts(id,kind,created,parent,conversation,show_photos)
+        SELECT ?,?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM removed WHERE id=?)
+        ON CONFLICT(id) DO UPDATE SET show_photos=excluded.show_photos
+    """, (ident, kind, created.astimezone(timezone.utc).isoformat(), parent, conversation,
+          show_photos(post, media_types or {}), ident))

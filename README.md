@@ -160,4 +160,5 @@ dear status
 
 - 网站启动失败时查看 `sudo journalctl -u dear-elsewhere.service -n 50`，核对数据库目录所有权和监听端口。
 - 同步失败时查看同步日志和 `dear status`。401/403 先检查应用权限与 Token，402 检查 X 余额，429 等待冷却。长时间停用同步可执行 `sudo systemctl disable --now dear-elsewhere-sync.timer`。
+- 站内显示文字和已确认的纯图片附件。含视频、动图、混合图片与视频或媒体类型未知的帖子以隐藏媒体的模式嵌入，仍可在 X 打开原帖。同步只保存一个图片展示标记。旧索引升级时默认隐藏媒体，使用 `check-links` 复查可恢复旧图片帖的展示。
 - 嵌入组件可能被浏览器隐私设置拦截，页面始终提供 X 原文链接。

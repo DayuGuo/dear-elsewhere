@@ -79,7 +79,7 @@
     {% if row.reply_id %}
     <details class="branch-reply" open>
       <summary class="meta">{{ t('Latest reply','最近的回信') }} · <time datetime="{{ row.reply_created }}">{{ row.reply_created|date }}</time></summary>
-      {{ source({'id':row.reply_id,'created':row.reply_created},demo,letters) }}
+      {{ source({'id':row.reply_id,'created':row.reply_created,'show_photos':row.reply_photos},demo,letters) }}
     </details>
     {% endif %}
   </article>

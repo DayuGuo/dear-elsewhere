@@ -135,7 +135,7 @@ class IndexTests(unittest.TestCase):
         self.assertEqual(self.web.get("/quest/9").status_code, 404)
 
     def test_resume_pages_and_commit_cursor_only_at_end(self):
-        ident = (int(time.time() * 1000) - 1288834974657) << 22
+        ident = (int(time.time() * 1000) - 60000 - 1288834974657) << 22
         with self.conn:
             db.set_state(self.conn, "since_id", ident - 1)
         fetch = Mock(side_effect=[page(fixture(ident+1, ident), token="more"),
@@ -147,7 +147,9 @@ class IndexTests(unittest.TestCase):
         first, failed, resumed = [call.args[2] for call in fetch.call_args_list]
         self.assertEqual(first["since_id"], str(ident-1))
         self.assertEqual(failed, resumed)
-        self.assertEqual(resumed["end_time"], first["end_time"])
+        self.assertEqual(resumed["until_id"], first["until_id"])
+        self.assertNotIn("end_time", first)
+        self.assertGreater(int(first["until_id"]), ident)
         self.assertEqual(resumed["next_token"], "more")
         self.assertEqual(db.state(self.conn, "since_id"), str(ident+1))
         self.assertIsNone(db.state(self.conn, "batch"))
@@ -160,6 +162,43 @@ class IndexTests(unittest.TestCase):
         with self.assertRaises(SyncError):
             sync(self.conn, Mock(return_value={**page(), "errors": [{"title": "partial"}]}))
         self.assertTrue(db.state(self.conn, "batch"))
+
+    def test_legacy_batch_restarts_at_last_committed_cursor(self):
+        cursor = str((int(time.time() * 1000) - 120000 - 1288834974657) << 22)
+        with self.conn:
+            db.set_state(self.conn, "since_id", cursor)
+            db.set_state(self.conn, "batch", json.dumps({"started": int(time.time()) - 50,
+                         "since_id": cursor, "end_time": "2026-06-01T00:00:00Z", "next_token": "old"}))
+        fetch = Mock(return_value=page())
+        sync(self.conn, fetch)
+        params = fetch.call_args.args[2]
+        self.assertEqual(params["since_id"], cursor)
+        self.assertNotIn("end_time", params)
+        self.assertNotIn("next_token", params)
+        self.assertEqual(db.state(self.conn, "since_id"), cursor)
+
+    def test_media_visibility_follows_attachments_across_all_pages(self):
+        gallery, video, mixed, unknown, gif = (fixture(i, 1 if i > 1 else None) for i in range(1, 6))
+        for post, keys in zip((gallery, video, mixed, unknown, gif),
+                              (["a", "b"], ["v"], ["a", "v"], ["a", "missing"], ["g"])):
+            post["attachments"] = {"media_keys": keys}
+        result = page(video, mixed, unknown, gif, gallery)
+        result["includes"] = {"media": [{"media_key": k, "type": typ}
+                                       for k, typ in (("a", "photo"), ("b", "photo"),
+                                                      ("v", "video"), ("g", "animated_gif"))]}
+        fetch = Mock(return_value=result)
+        sync(self.conn, fetch)
+        self.assertEqual(fetch.call_args.args[2]["expansions"], "attachments.media_keys")
+        for path in ("/", "/?picks=1&open=1", "/quest/1"):
+            html = self.web.get(path).get_data(as_text=True)
+            self.assertIn('data-post="1" data-photos', html)
+            self.assertEqual(html.count(" data-photos"), 1)
+        # Rechecking a reply can enable its photos on both the branch and its detail page.
+        gif["attachments"] = {"media_keys": ["a"]}
+        with patch("elsewhere.sync.api", return_value={"data": [gif], "includes": result["includes"]}):
+            check_links(self.conn, ["5"])
+        for path in ("/", "/quest/1"):
+            self.assertIn('data-post="5" data-photos', self.web.get(path).get_data(as_text=True))
 
     def test_allowance_reserves_before_retry(self):
         with patch.dict(os.environ, X_MONTHLY_READ_LIMIT="110"), patch("elsewhere.sync.time.sleep"), \

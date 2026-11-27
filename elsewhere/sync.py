@@ -13,10 +13,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from .db import DEFAULT_DB, index_post, post_id, set_state, state
+from .db import DEFAULT_DB, index_post, post_id, set_state, show_photos, state
 
 QUERY = "(#DearElsewhereQuest OR #DearElsewhereDone) -is:retweet"
-FIELDS = "created_at,conversation_id,referenced_tweets,entities,note_tweet,withheld"
+FIELDS = "created_at,conversation_id,referenced_tweets,entities,note_tweet,withheld,attachments"
+MEDIA_PARAMS = {"expansions": "attachments.media_keys", "media.fields": "type"}
 LOG = logging.getLogger(__name__)
 
 
@@ -106,13 +107,22 @@ def utc(seconds):
     return datetime.fromtimestamp(seconds, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def media_types(result):
+    return {m["media_key"]: m.get("type") for m in result.get("includes", {}).get("media", [])
+            if m.get("media_key")}
+
+
 def new_batch(conn):
     end = int(time.time()) - 30
     batch = {"started": end}
     cursor = state(conn, "since_id")
     earliest = time.time() - 7 * 86400
     if cursor and ((int(cursor) >> 22) + 1288834974657) / 1000 > earliest:
-        batch.update(since_id=cursor, end_time=utc(end))
+        batch["since_id"] = cursor
+        # Recent Search rejects ID bounds combined with time bounds.
+        until_id = (end * 1000 - 1288834974657) << 22
+        if until_id > int(cursor):
+            batch["until_id"] = str(until_id)
     return batch
 
 
@@ -122,6 +132,8 @@ def sync(conn, fetch=api):
         raise SyncError("X_MAX_PAGES must be positive")
     saved = state(conn, "batch")
     batch = json.loads(saved) if saved else new_batch(conn)
+    if "since_id" in batch and "end_time" in batch:
+        batch = new_batch(conn)
     # Recent Search cannot recover results that have aged out while paused.
     horizon = time.time() - 7 * 86400
     if batch["started"] <= horizon:
@@ -131,7 +143,7 @@ def sync(conn, fetch=api):
     highest = int(batch.get("highest") or cursor or 0)
     for page in range(1, limit + 1):
         params = {k: v for k, v in batch.items() if k not in ("highest", "started")}
-        params.update(query=QUERY, sort_order="recency", **{"tweet.fields": FIELDS})
+        params.update(query=QUERY, sort_order="recency", **{"tweet.fields": FIELDS}, **MEDIA_PARAMS)
         result = fetch(conn, "tweets/search/recent", params, 100, 10)
         rows = result.get("data", [])
         meta = result.get("meta", {})
@@ -140,10 +152,11 @@ def sync(conn, fetch=api):
         nxt = meta.get("next_token")
         if nxt and nxt == batch.get("next_token"):
             raise SyncError("repeated pagination token")
+        types = media_types(result)
         with conn:
             for row in rows:
                 highest = max(highest, int(post_id(row["id"])))
-                index_post(conn, row)
+                index_post(conn, row, types)
             if nxt:
                 batch.update(next_token=nxt, highest=str(highest))
                 set_state(conn, "batch", json.dumps(batch))
@@ -163,7 +176,8 @@ def check_links(conn, ids):
     ids = list(dict.fromkeys(post_id(ident) for ident in ids))
     if not 1 <= len(ids) <= 100:
         raise SyncError("provide 1 to 100 post IDs")
-    result = api(conn, "tweets", {"ids": ",".join(ids), "tweet.fields": "withheld"}, len(ids), len(ids))
+    result = api(conn, "tweets", {"ids": ",".join(ids), **MEDIA_PARAMS,
+                                  "tweet.fields": "withheld,attachments,referenced_tweets"}, len(ids), len(ids))
     found = {p["id"] for p in result.get("data", [])}
     unavailable = {p["id"] for p in result.get("data", []) if p.get("withheld")}
     for error in result.get("errors", []):
@@ -172,6 +186,9 @@ def check_links(conn, ids):
             if ident in ids:
                 unavailable.add(ident)
     with conn:
+        types = media_types(result)
+        conn.executemany("UPDATE posts SET show_photos=? WHERE id=?",
+                         [(show_photos(p, types), p["id"]) for p in result.get("data", [])])
         conn.executemany("UPDATE posts SET hidden=1 WHERE id=?", [(i,) for i in unavailable])
     LOG.info("checked=%d unavailable=%d inconclusive=%d", len(ids), len(unavailable),
              len(set(ids) - found - unavailable))
