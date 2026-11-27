@@ -182,6 +182,19 @@ body > footer { justify-content: space-between; flex-wrap: wrap; color: var(--mu
 .play-card blockquote { grid-column: 1 / -1; margin: 0; max-width: 29ch; text-wrap: pretty; font: 500 1.55rem/1.35 var(--serif); }
 :lang(zh-CN) .play-card blockquote { font: 500 1.15rem/1.7 var(--song); }
 .play-tag { grid-column: 1 / -1; color: var(--olive); overflow-wrap: anywhere; user-select: all; }
+button.hashtag {
+  padding: .06em .12em; border: 0; background: transparent; color: var(--olive); font: inherit;
+  text-decoration: underline dotted; text-underline-offset: .18em; cursor: pointer;
+}
+.play-tag button { min-height: 2.75rem; }
+.play-tag button::after { content: attr(data-action); display: inline-block; margin-inline-start: .6em; color: var(--muted); }
+button.hashtag:hover { text-decoration-style: solid; }
+.copy-status {
+  position: fixed; z-index: 2; inset-inline: 1rem; bottom: max(1rem, env(safe-area-inset-bottom));
+  width: fit-content; max-width: calc(100% - 2rem); margin-inline: auto; border-radius: var(--corner);
+  background: var(--olive); color: var(--paper); font: 500 .9rem/1.5 var(--ui); pointer-events: none;
+}
+.copy-status:not(:empty) { padding: .55rem .9rem; }
 .play-start { margin-top: 1.6rem; display: flex; align-items: center; gap: .8rem 2rem; justify-content: space-between; flex-wrap: wrap; }
 .play-start p { max-width: 35rem; }
 @media (max-width: 42rem) {
