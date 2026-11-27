@@ -24,10 +24,26 @@ function widget(element) {
   })).catch(() => { /* Keep the original link when X is unavailable. */ });
 }
 
-// Use X's plain-text oEmbed preview in the index. The reading page keeps the full widget.
+// Keep the post's text, line breaks and links without mounting remote HTML.
+function readablePost(body) {
+  const paragraph = document.createElement("p");
+  paragraph.className = "post-body";
+  paragraph.dir = "auto";
+  for (const node of body.childNodes) {
+    if (node.nodeName === "A" && /^https?:\/\//i.test(node.getAttribute("href") || "")) {
+      const link = document.createElement("a");
+      link.href = node.getAttribute("href");
+      link.textContent = node.textContent;
+      paragraph.append(" ", link);
+    } else {
+      paragraph.append(node.textContent);
+    }
+  }
+  return paragraph;
+}
 async function embed(element) {
   const card = element.closest(".thread-card");
-  if (!card || element.hasAttribute("data-photos")) {
+  if (element.hasAttribute("data-photos")) {
     widget(element);
     return;
   }
@@ -44,6 +60,15 @@ async function embed(element) {
     const body = template.content.querySelector("blockquote p");
     if (!body || !body.textContent.trim()) throw new Error("Empty preview");
     body.querySelectorAll("br").forEach(br => br.replaceWith("\n"));
+    if (!card) {
+      element.replaceChildren(readablePost(body));
+      element.classList.add("full-post");
+      const source = element.nextElementSibling;
+      if (source?.matches(".source") && post.author_name) {
+        source.textContent = post.author_name + " · X ↗";
+      }
+      return;
+    }
     const excerpt = document.createElement("a");
     excerpt.className = "excerpt";
     excerpt.href = element.closest(".thread-reply") ? original : card.querySelector(".task-label a").href;

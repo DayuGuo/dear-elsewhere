@@ -1,29 +1,21 @@
 {% extends "base.html" %}
-{% from "parts.html" import source, post_date, pager, widgets %}
+{% from "parts.html" import source, post_date, pager, widgets, play_steps %}
 {% block main %}
 {% if drawn is none %}
-<section class="frontispiece">
-  <div class="mast-copy">
-    <h1>{{ t('An invitation to','一份重新观察') }}<br><em>{{ t('notice the world.','世界的邀请。') }}</em></h1>
-    <p class="intro">{{ t('Draw three letters from strangers. Choose one to take outside, then write back on X with what you find.','抽三封来信，选一封带出门。把路上的发现写成回信，寄回 X 上的原帖。') }}</p>
-    <div class="mast-actions">
-      <form action="/" method="get"><button name="draw" value="1" class="button">{{ t('Pick three letters','从树上取三封信') }} <span aria-hidden="true">→</span></button></form>
-      <a class="guide-link" href="#how-to-play">{{ t('How to play','参与玩法') }} ↓</a>
-    </div>
+<section class="frontispiece" aria-labelledby="welcome">
+  <h1 id="welcome">{{ t('Go outside.','出门看看，') }}<br><em>{{ t('Write back.','写封信回来。') }}</em></h1>
+  <p class="intro">{{ t('Pick three letters from the tree. Take one invitation outside, then reply on X with what you find.','从树上抽三封来信，挑一封带出门。回来时，在 X 原帖下寄回你的发现。') }}</p>
+  <div class="mast-actions">
+    <a class="button" href="/?draw=1">{{ t('Pick three letters','抽三封信') }} <span aria-hidden="true">→</span></a>
+    <a class="guide-link" href="#how-to-play">{{ t('How to play','参与玩法') }}</a>
   </div>
-  <figure class="specimen">
-    <a class="tree-draw" href="/?draw=1" aria-label="{{ t('Pick three letters from the tree','从挂信树上取三封信') }}">
-      <img class="tree-art" src="{{ url_for('static',filename='letter-tree.webp') }}" width="1402" height="1122" alt="{{ t('An engraved wild rose tree with folded letters tied to its branches.','细线铜版画，一株开花的野蔷薇树，枝条上用细绳系着信封。') }}">
-      <span class="tree-seal wax" aria-hidden="true"></span>
-      <span class="tree-seal left" aria-hidden="true"></span>
-      <span class="tree-seal right" aria-hidden="true"></span>
-      <span class="tree-seal lower" aria-hidden="true"></span>
-    </a>
-
-  </figure>
+  <a class="tree-draw" href="/?draw=1" aria-label="{{ t('Pick three letters from the tree','从挂信树上取三封信') }}">
+    <img src="{{ url_for('static',filename='letter-tree.webp') }}" width="1402" height="1122" alt="{{ t('A wild rose tree with letters tied to its branches.','枝头挂着信封的野蔷薇树。') }}">
+  </a>
 </section>
 {% else %}
 <section id="draw" class="draw">
+  <a class="back" href="/#branches">← {{ t('All tasks','全部任务') }}</a>
   <header class="draw-head">
     <div>
       <h1>{{ t('Letters from the tree','树下拆信') }}</h1>
@@ -90,11 +82,7 @@
 </section>
 <section id="how-to-play" class="guide">
   <h2>{{ t('How to play','参与玩法') }}</h2>
-  <ol class="steps">
-    <li><h3>{{ t('Pick a letter','挑一封信') }}</h3><p>{{ t('Draw three invitations and choose one that makes you curious. Take it with you on your next walk.','从抽出的三封邀请中，挑一封让你好奇的。下次散步时，带着它出发。') }}</p></li>
-    <li><h3>{{ t('Write back','写封回信') }}</h3><p>{{ t('Reply directly to the original post on X with words, a photo, or a video. Add','在 X 上直接回复原帖，用文字、照片或视频分享你的发现。带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p></li>
-    <li><h3>{{ t('Send your own','发出邀请') }}</h3><p>{{ t('What would you love to see from elsewhere? Ask in an original public post on X with','你想看看别处的什么？在 X 上发一条公开原创帖，写下邀请，并带上') }} <b>#DearElsewhereQuest</b>{{ t('.','。') }}</p></li>
-  </ol>
+  {{ play_steps() }}
 </section>
 {% endif %}
 {% if (rows or drawn) and not demo %}{{ widgets() }}{% endif %}

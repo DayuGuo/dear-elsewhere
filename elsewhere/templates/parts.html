@@ -19,4 +19,12 @@
 {% if more %}<a href="?page={{ number+1 }}{{ anchor }}">{{ t('Next','下一页') }} →</a>{% endif %}
 </nav>{% endif %}
 {% endmacro %}
-{% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js',v='excerpt') }}"></script>{% endmacro %}
+{% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js',v='letters') }}"></script>{% endmacro %}
+
+{% macro play_steps() %}
+  <ol class="steps">
+    <li><h3>{{ t('Pick a letter','挑一封信') }}</h3><p>{{ t('Draw three invitations and choose one that makes you curious. Take it with you on your next walk.','从抽出的三封邀请中，挑一封让你好奇的。下次散步时，带着它出发。') }}</p></li>
+    <li><h3>{{ t('Write back','写封回信') }}</h3><p>{{ t('Reply directly to the original post on X with words, a photo, or a video. Add','在 X 上直接回复原帖，用文字、照片或视频分享你的发现。带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p></li>
+    <li><h3>{{ t('Send your own','发出邀请') }}</h3><p>{{ t('What would you love to see from elsewhere? Ask in an original public post on X with','你想看看别处的什么？在 X 上发一条公开原创帖，写下邀请，并带上') }} <b>#DearElsewhereQuest</b>{{ t('.','。') }}</p></li>
+  </ol>
+{% endmacro %}

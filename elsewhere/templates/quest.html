@@ -2,21 +2,27 @@
 {% from "parts.html" import source, pager, widgets %}
 {% block title %}{{ t('Invitation','来信') }} · {{ invitation.created|date }} · Dear Elsewhere{% endblock %}
 {% block main %}
-<div class="reading">
-  <a class="back" href="/#branches">← {{ t('All letters','所有来信') }}</a>
-  <p class="meta">{% if demo %}{{ t('Fictional preview','模拟来信') }} · {% endif %}{{ invitation.created|date }}</p>
-  <h1>{{ t('Exploration task','探索任务') }}</h1>
-  <div class="branch-root">{{ source(invitation,demo,letters) }}</div>
-  <p>{{ t('Try this invitation where you live. Reply directly to the original post on X with','在你生活的地方试试这封邀请，然后在 X 上直接回复原帖，带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p>
-  {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">{{ t('Reply on X','去 X 写回信') }} ↗</a>{% endif %}
-  <div class="section-head" id="replies"><h2>{{ t('Replies','枝上的回信') }}</h2></div>
-  {% for row in rows %}
-  <details class="branch-reply" open>
-    <summary class="meta">{{ t('Reply','回信') }} · <time datetime="{{ row.created }}">{{ row.created|date }}</time></summary>
-    {{ source(row,demo,letters) }}
-  </details>
-  {% else %}<p class="quiet">{{ t('This invitation is open. The first reply is still to come.','这封邀请一直敞开着，等待第一封回信。') }}</p>{% endfor %}
-  {{ pager(number,more) }}
-</div>
+<article class="reading correspondence">
+  <a class="back" href="/#branches">← {{ t('All tasks','全部任务') }}</a>
+  <header class="entry-head">
+    <h1>{{ t('Exploration task','探索任务') }}</h1>
+    <p class="meta">{% if demo %}{{ t('Fictional preview','模拟来信') }} · {% endif %}<time datetime="{{ invitation.created }}">{{ invitation.created|date }}</time></p>
+  </header>
+  <div class="task-sheet">{{ source(invitation,demo,letters) }}</div>
+  <section class="reply-sheet" id="replies" aria-labelledby="reply-title">
+    <h2 id="reply-title"><span aria-hidden="true">↳</span> {{ t('Replies','回信') }}</h2>
+    {% for row in rows %}
+    <details class="branch-reply" open>
+      <summary><time datetime="{{ row.created }}">{{ row.created|date }}</time></summary>
+      {{ source(row,demo,letters) }}
+    </details>
+    {% else %}<p class="quiet">{{ t('This task is open for its first reply.','第一封回信的位置还空着。') }}</p>{% endfor %}
+    {{ pager(number,more,'#replies') }}
+  </section>
+  <div class="compose">
+    <p>{{ t('After your walk, reply to the original post with','探索回来后，直接回复原帖，带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p>
+    {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">{{ t('Reply on X','去 X 写回信') }} ↗</a>{% endif %}
+  </div>
+</article>
 {% if not demo %}{{ widgets() }}{% endif %}
 {% endblock %}

@@ -1,19 +1,23 @@
 {% extends "base.html" %}
+{% from "parts.html" import play_steps %}
 {% block title %}{{ t('About','关于') }} · Dear Elsewhere{% endblock %}
 {% block main %}
-<article class="reading about">
-  <h1>{{ t('About the project','关于致别处') }}</h1>
-  <p class="lede">{{ t('An invitation to notice the world.','一份重新观察世界的邀请。') }}</p>
+<article class="about">
+  <header class="about-letter">
+    <img src="{{ url_for('static',filename='brand/mark.svg') }}" width="85" height="104" alt="">
+    <h1>{{ t('About Dear Elsewhere','关于致别处') }}</h1>
+    <p class="lede">{{ t('An invitation to notice the world.','一份重新观察世界的邀请。') }}</p>
   <p>{{ t('Dear Elsewhere is a small, open-ended game played in the world and shared on X. Anyone can send an invitation. Someone elsewhere can go outside, follow their curiosity, and write back.','致别处是一场在现实中探索、在 X 上通信的小游戏。任何人都可以寄出邀请。远方的人读到它，就可以带着这份好奇出门，再把一路上的发现写成回信。') }}</p>
-  <h2 id="participate">{{ t('How to take part','如何参与') }}</h2>
-  <p><a href="/?draw=1">{{ t('Draw three invitations','抽取三封邀请') }}</a>{{ t(', choose one, and take it outside with you. You can also join in directly on X.','，挑一封带出门。你也可以直接在 X 上参与。') }}</p>
-  <ol>
-    <li><strong>{{ t('Send an invitation.','寄出邀请。') }}</strong> {{ t('Write an original public post on X inviting someone to explore something where they live. Add','在 X 上发一条公开原创帖，邀请别人探索身边的事物，带上') }} <b>#DearElsewhereQuest</b>{{ t('.','。') }}</li>
-    <li><strong>{{ t('Write back.','寄回发现。') }}</strong> {{ t('Try an invitation in the real world. Reply directly to its original post with words, a photograph, or a video. Add','完成探索后，直接回复原帖，用文字、照片或视频记录所见，带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</li>
-  </ol>
   <p>{{ t('Invitations stay open. Take your time and interpret them your own way. There are no deadlines, scores, or correct answers.','邀请长期开放。你可以按自己的步调、用自己的方式回应，每个人眼中的风景都值得寄来。') }}</p>
-  <h2>{{ t('A public index','一份公共索引') }}</h2>
+  </header>
+  <section class="guide" id="participate">
+    <h2>{{ t('How to take part','如何参与') }}</h2>
+    {{ play_steps() }}
+    <a class="button" href="/?draw=1">{{ t('Pick three letters','抽三封信') }} →</a>
+  </section>
+  <section class="index-note"><h2>{{ t('A public index','一份公共索引') }}</h2>
   <p>{{ t('The site checks public posts hourly and connects invitations with their replies. You can play entirely on X. The index keeps post identifiers, dates, and connections. The writing and media stay with their authors on X. Opening a page with embedded posts also connects your browser to X.','网站每小时检索公开帖子，将邀请和回信连在一起。你可以全程在 X 上参与。索引保存帖子编号、时间和关联，文字与影像由作者发布在 X 上。浏览内嵌帖子时，浏览器会连接到 X。') }}</p>
   {% if contact %}<p>{{ t('For a removal or a broken link, send the post URL to','需要移除记录或反馈失效链接，请将原帖网址发送至') }} <a href="mailto:{{ contact }}">{{ contact }}</a>{{ t('.','。') }}</p>{% endif %}
+  </section>
 </article>
 {% endblock %}
