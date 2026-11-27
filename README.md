@@ -32,6 +32,31 @@
 
 开启 JavaScript 时，刷新、分享网址或切换语言都能保留已拆开的信。三封展开的模拟来信可见[桌面版](docs/previews/three-letters-zh.png)及[手机版](docs/previews/three-letters-mobile-zh.png)。[八项设计复核](docs/design-review.md)记录了改版取舍及本机验证结果。
 
+## VPS 一键安装
+
+在使用 systemd 的 Debian 12+ 或 Ubuntu 24.04+ VPS 上登录交互式 SSH，准备好 X 应用的 **Bearer Token** 和 `curl`，然后执行：
+
+```sh
+curl -fsSLo "$HOME/dear-elsewhere-install.sh" https://raw.githubusercontent.com/DayuGuo/dear-elsewhere/main/install.sh && sudo bash "$HOME/dear-elsewhere-install.sh"
+```
+
+按提示粘贴 Token 并回车，输入时屏幕不会显示字符。脚本从公开仓库下载 main 分支，安装依赖，启动 Gunicorn，检查首页，开启每小时定时器，并立即执行一次同步。首次同步查询最近七天，可能使用 X API 额度。如果 X 拒绝请求，脚本会提示失败并给出日志命令，网站和定时器继续运行。
+
+网站监听 VPS 的 `127.0.0.1:8791`。要从自己电脑预览，请在**本机**另开终端运行以下命令，把 `用户名@VPS地址` 换成自己的 SSH 登录地址，然后打开 <http://127.0.0.1:18791>。
+
+```sh
+ssh -N -L 18791:127.0.0.1:8791 用户名@VPS地址
+```
+
+在 VPS 上可查看下次同步时间和最近的同步结果：
+
+```sh
+systemctl list-timers --all dear-elsewhere-sync.timer
+sudo journalctl -u dear-elsewhere-sync.service -n 40 --no-pager
+```
+
+重复执行安装命令可更新代码并再次同步，已有 Token、自定义配置、索引和同步游标会保留。要替换 Token，执行 `sudo bash "$HOME/dear-elsewhere-install.sh" --replace-token`。配置存放在仅 root 可读写的 `/etc/dear-elsewhere.env`，数据库默认位于 `/var/lib/dear-elsewhere/index.sqlite3`。
+
 ## 先看演示
 
 需要 Python 3.11 或以上版本。以下命令适用于 macOS 和 Linux。在 Debian 12 上可先执行 `sudo apt install git python3-venv`。首次安装依赖需要联网。
@@ -58,37 +83,9 @@ ssh -N -L 8791:127.0.0.1:8791 vps
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-## 部署到 Debian 12
+## 服务配置
 
-架构为 Flask + Jinja + SQLite，Gunicorn 使用一个 worker、两个线程。systemd 管理网站和每小时一次的同步。以下步骤均在上面已经克隆的仓库根目录执行。私有仓库需要先给部署用户配置 GitHub 读取权限，也可用已获授权的 SSH 地址克隆。
-
-### 1. 安装应用
-
-```sh
-sudo apt update
-sudo apt install python3-venv
-getent passwd dear-elsewhere >/dev/null || sudo useradd --system --user-group --home-dir /var/lib/dear-elsewhere --no-create-home --shell /usr/sbin/nologin dear-elsewhere
-sudo install -d -m 0755 /opt/dear-elsewhere
-git archive HEAD | sudo tar -x -C /opt/dear-elsewhere
-sudo python3 -m venv /opt/dear-elsewhere/.venv
-sudo /opt/dear-elsewhere/.venv/bin/pip install -r /opt/dear-elsewhere/requirements.txt
-sudo install -d -o dear-elsewhere -g dear-elsewhere -m 0700 /var/lib/dear-elsewhere
-sudo install -m 0644 deploy/dear-elsewhere* /etc/systemd/system/
-sudo systemctl daemon-reload
-```
-
-### 2. 配置并启动网站
-
-首次安装时复制环境示例，再用编辑器填入服务端配置。
-
-```sh
-sudo test -e /etc/dear-elsewhere.env || sudo install -m 0600 .env.example /etc/dear-elsewhere.env
-sudoedit /etc/dear-elsewhere.env
-sudo systemctl enable --now dear-elsewhere.service
-curl -fsS http://127.0.0.1:8791/ >/dev/null
-```
-
-启动前服务会执行幂等的 `python -m elsewhere init`。即使没有 X Token，首页也可以访问，显示等待第一封邀请的状态。生产索引与演示库使用不同文件。环境文件由 systemd 读取，Web 进程启动时会移除 Token。
+Gunicorn 使用一个 worker 和两个线程。systemd 在启动网站前初始化数据库，只有同步进程使用 Token。修改配置可执行 `sudoedit /etc/dear-elsewhere.env`，网页设置在 `sudo systemctl restart dear-elsewhere.service` 后生效，同步设置在下次运行时生效。
 
 | 变量 | 默认值或示例 | 用途 |
 | --- | --- | --- |
@@ -100,15 +97,13 @@ curl -fsS http://127.0.0.1:8791/ >/dev/null
 
 默认只监听回环地址 `127.0.0.1:8791`，可继续使用前述 SSH 隧道。对公网开放时，在现有反向代理中给项目域名添加独立站点，将上游指向该地址并配置 HTTPS。例如已有 Caddy 时，站点内容可用 `reverse_proxy 127.0.0.1:8791`。容器内的代理需使用其可达的宿主机上游。安装步骤不需要占用 80 或 443 端口。
 
-### 3. 首次真实同步
+### 手动触发同步
 
-在 X Developer Console 确认应用可以调用 Recent Search，有可用额度，并设置适合的消费上限。将 Token 填入环境文件。先单次运行并检查日志，再启用定时器。
+在 X Developer Console 确认应用可以调用 Recent Search，有可用额度，并设置适合的消费上限。一键安装已启用定时器，需要立即检查新邀请时可执行下面的命令。
 
 ```sh
 sudo systemctl start dear-elsewhere-sync.service
 sudo journalctl -u dear-elsewhere-sync.service -n 40 --no-pager
-sudo systemctl enable --now dear-elsewhere-sync.timer
-systemctl list-timers dear-elsewhere-sync.timer
 ```
 
 成功但收到 0 条结果是正常情况。可在 X 发布一条带标签的公开原创邀请，等 X 编入搜索后跑一次同步，再直接回复原帖并用相同方式验证。首页应出现邀请，详情应出现回应。排查凭据时查看 HTTP 状态码即可，不要将 Token 写入工单或命令行历史。
@@ -156,9 +151,13 @@ dear status
 
 ## 更新与排查
 
-在克隆目录执行 `git pull --ff-only`，重新执行“安装应用”中的代码导出、依赖安装、unit 安装和 daemon-reload，再执行 `sudo systemctl restart dear-elsewhere.service`。同步任务下次运行时读取新代码及配置。升级前可用 SQLite 的在线 backup 功能备份索引。配置和数据库均位于代码目录以外。
+更新前可用 SQLite 的在线 backup 功能备份索引，再重新执行 VPS 一键安装命令。
 
 - 网站启动失败时查看 `sudo journalctl -u dear-elsewhere.service -n 50`，核对数据库目录所有权和监听端口。
 - 同步失败时查看同步日志和 `dear status`。401/403 先检查应用权限与 Token，402 检查 X 余额，429 等待冷却。长时间停用同步可执行 `sudo systemctl disable --now dear-elsewhere-sync.timer`。
 - 站内显示文字和已确认的纯图片附件。含视频、动图、混合图片与视频或媒体类型未知的帖子以隐藏媒体的模式嵌入，仍可在 X 打开原帖。同步只保存一个图片展示标记。旧索引升级时默认隐藏媒体，使用 `check-links` 复查可恢复旧图片帖的展示。
 - 嵌入组件可能被浏览器隐私设置拦截，页面始终提供 X 原文链接。
+
+## 开源许可
+
+项目代码采用 [MIT 许可证](LICENSE)。随附字体沿用各自的 [SIL Open Font License](elsewhere/static/fonts/)。X 用户发布的内容由原作者在 X 上提供。
