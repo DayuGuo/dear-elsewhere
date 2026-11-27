@@ -135,6 +135,10 @@ b { color: var(--olive); overflow-wrap: anywhere; font-weight: 600; }
 .text-button span { font: 1.18rem/1 Georgia, serif; margin-right: .2rem; }
 .text-button:hover { text-decoration: underline; text-underline-offset: .28em; }
 .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.8rem, 2vw, 1.6rem); }
+/* X embeds need 250px inside each padded letter. */
+@media (min-width: 741px) and (max-width: 63rem) {
+  .choices:has(.embed) { grid-template-columns: minmax(0, 1fr); max-width: 42rem; margin-inline: auto; }
+}
 .mailpiece {
   position: relative;
   min-width: 0; display: flex; flex-direction: column;
