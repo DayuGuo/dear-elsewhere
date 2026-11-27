@@ -1,6 +1,6 @@
 {% macro post_date(ident, created, demo) -%}
   {% if not demo %}<a class="post-origin" href="https://x.com/i/web/status/{{ ident }}" aria-label="{{ t('Read original on X','在 X 阅读原帖') }} · {{ created|date }}">{% endif %}
-  <time datetime="{{ created }}">{{ created|date }}</time>{% if not demo %} <span aria-hidden="true">X ↗</span></a>{% endif %}
+  <time datetime="{{ created }}" title="{{ created|date }}">{{ created[5:10]|replace('-','.') }}</time>{% if not demo %} <span aria-hidden="true">X ↗</span></a>{% endif %}
 {%- endmacro %}
 
 {% macro source(row, demo, letters, show_link=true) %}
@@ -19,4 +19,4 @@
 {% if more %}<a href="?page={{ number+1 }}{{ anchor }}">{{ t('Next','下一页') }} →</a>{% endif %}
 </nav>{% endif %}
 {% endmacro %}
-{% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js',v='photos') }}"></script>{% endmacro %}
+{% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js',v='excerpt') }}"></script>{% endmacro %}

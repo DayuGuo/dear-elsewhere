@@ -2,12 +2,14 @@
 const grid = document.querySelector(".thread-grid");
 if (grid && "ResizeObserver" in window) {
   const cards = Array.from(grid.children);
-  const gap = parseFloat(getComputedStyle(grid).columnGap);
-  const fit = card => {
-    card.style.gridRowEnd = "span " + Math.ceil(card.getBoundingClientRect().height + gap);
+  const fit = targets => {
+    const gap = parseFloat(getComputedStyle(grid).columnGap);
+    for (const card of targets) {
+      card.style.gridRowEnd = "span " + Math.ceil(card.getBoundingClientRect().height + gap);
+    }
   };
-  cards.forEach(fit);
+  fit(cards);
   grid.classList.add("packed");
-  const observer = new ResizeObserver(entries => entries.forEach(entry => fit(entry.target)));
+  const observer = new ResizeObserver(entries => fit(entries.map(entry => entry.target)));
   cards.forEach(card => observer.observe(card));
 }

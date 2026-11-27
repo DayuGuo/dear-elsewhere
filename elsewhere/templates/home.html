@@ -60,26 +60,25 @@
 
 {% if drawn is none %}
 <section id="branches" aria-labelledby="index-title">
-  <div class="section-head"><h2 id="index-title">{{ t('Tasks & replies','任务与回信') }}</h2><span class="meta">{{ t('Fictional preview','模拟来信') if demo else t('Newest first','最新任务优先') }}</span></div>
+  <div class="section-head"><h2 id="index-title">{{ t('Tasks & replies','任务与回信') }}</h2>{% if demo %}<span class="meta">{{ t('Fictional preview','模拟来信') }}</span>{% endif %}</div>
   {% if rows %}
   <div class="thread-grid">
     {% for row in rows %}
     <article class="thread-card">
       <header class="thread-heading">
-        <h3 class="task-label">{{ t('Task','任务') }}</h3>
+        <h3 class="task-label"><a href="{{ url_for('quest',ident=row.id) }}">{{ t('Task','任务') }} <span aria-hidden="true">→</span></a></h3>
         {{ post_date(row.id,row.created,demo) }}
       </header>
-      <div class="thread-post">{{ source(row,demo,letters,false) }}</div>
+      <div class="thread-post">{% if demo %}<a class="excerpt" href="{{ url_for('quest',ident=row.id) }}">{{ letters[row.id] }}</a>{% else %}{{ source(row,demo,letters,false) }}{% endif %}</div>
       {% if row.reply_id %}
       <details class="thread-reply" open>
-        <summary><span class="reply-label">{{ t('Latest reply','最新回信') if row.replies > 1 else t('Reply','回信') }}</span>{{ post_date(row.reply_id,row.reply_created,demo) }}</summary>
+        <summary><span class="reply-label">{{ t('Latest reply','最新回信') if row.replies > 1 else t('1 reply','回信') }}</span>{{ post_date(row.reply_id,row.reply_created,demo) }}</summary>
         {{ source({'id':row.reply_id,'show_photos':row.reply_photos},demo,letters,false) }}
       </details>
       {% endif %}
-      <footer class="thread-foot">
-        <span>{{ (t('%d reply' if row.replies == 1 else '%d replies','%d 封回信')|format(row.replies)) if row.replies else t('Awaiting a reply','等待第一封回信') }}</span>
-        <a href="{{ url_for('quest',ident=row.id) }}">{{ t('Open thread','查看任务') }} <span aria-hidden="true">→</span></a>
-      </footer>
+      {% if row.replies > 1 %}
+      <a class="more-replies" href="{{ url_for('quest',ident=row.id) }}#replies">{{ t('All %d replies','全部 %d 封回信')|format(row.replies) }} →</a>
+      {% endif %}
     </article>
     {% endfor %}
   </div>

@@ -9,7 +9,7 @@
   <div class="branch-root">{{ source(invitation,demo,letters) }}</div>
   <p>{{ t('Try this invitation where you live. Reply directly to the original post on X with','在你生活的地方试试这封邀请，然后在 X 上直接回复原帖，带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p>
   {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">{{ t('Reply on X','去 X 写回信') }} ↗</a>{% endif %}
-  <div class="section-head"><h2>{{ t('Replies','枝上的回信') }}</h2></div>
+  <div class="section-head" id="replies"><h2>{{ t('Replies','枝上的回信') }}</h2></div>
   {% for row in rows %}
   <details class="branch-reply" open>
     <summary class="meta">{{ t('Reply','回信') }} · <time datetime="{{ row.created }}">{{ row.created|date }}</time></summary>
