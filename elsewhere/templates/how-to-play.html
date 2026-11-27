@@ -1,36 +1,40 @@
 {% extends "base.html" %}
 {% block title %}{{ t('How to play','参与玩法') }} · Dear Elsewhere{% endblock %}
-{% block description %}{{ t('Post an invitation on X with #DearElsewhereQuest, then reply to an original invitation with #DearElsewhereDone. See examples and copy either hashtag.','在 X 用 #DearElsewhereQuest 发出探索邀请，完成后直接回复原帖并带上 #DearElsewhereDone。这里有明信片示例和可复制的标签。') }}{% endblock %}
+{% block description %}{{ t('Post an invitation on X with #DearElsewhereQuest, then reply to an original invitation with #DearElsewhereDone. Copy the hashtag and @Dear_Elsewhere_ mention from either postcard.','在 X 用 #DearElsewhereQuest 发出探索邀请，完成后直接回复原帖并带上 #DearElsewhereDone。可从示例明信片一起复制标签和项目账号 @Dear_Elsewhere_。') }}{% endblock %}
 {% macro copy_tag(tag) -%}
 <span class="hashtag" data-action="{{ t('Copy','复制') }}">{{ tag }}</span>
 {%- endmacro %}
 {% set quest = copy_tag('#DearElsewhereQuest') %}
 {% set done = copy_tag('#DearElsewhereDone') %}
+{% set account %}<a href="https://x.com/Dear_Elsewhere_">@Dear_Elsewhere_</a>{% endset %}
+{% macro signature(tag) -%}
+<span class="play-tag"><span class="copy-value">{{ tag }} {{ account }}</span></span>
+{%- endmacro %}
 {% block main %}
 <article class="playbook">
   <header class="play-intro">
     <h1>{{ t('How to play','参与玩法') }}</h1>
-    <p>{{ t('Pick a letter and take it outside. Or send someone elsewhere a question of your own. Mention @Dear_Elsewhere_ in invitations and replies so readers can find the project. Keep the opening # on the hashtag so the site can find your post.','挑一封信，带着它出门。你也可以寄出自己的邀请，让别处的人替你看看。发邀请和写回信时，都请提及项目账号 @Dear_Elsewhere_，并保留标签开头的半角 #，方便网站识别。') }}</p>
+    <p>{{ t('Pick a letter and take it outside. Or send someone elsewhere a question of your own. You can copy the hashtag and project account together from either postcard below. Keep the # and @ when you post.','挑一封信，带着它出门。你也可以寄出自己的邀请，让别处的人替你看看。下方两张明信片都可以一键复制标签和项目账号。发帖时请保留开头的 # 和 @。') }}</p>
   </header>
   <div class="postcard-pair">
     <section class="play-step">
       <h2>{{ t('Send an invitation','寄出邀请') }}</h2>
-      <p>{{ t('Write an original public post on X. Ask someone to notice something where they live. Add %s, the invitation hashtag on this postcard.','在 X 发一条公开原创帖，请别人观察身边的一件小事。带上这张明信片里的邀请标签%s。')|e|format(quest) }}</p>
+      <p>{{ t('Write an original public post on X inviting someone to notice one thing where they live. Add %s so your invitation appears on the site, and mention %s so readers can find the project.','在 X 发一条公开原创帖，请别人观察身边的一件小事。带上邀请标签 %s，让网站找到这封邀请。再提及项目账号 %s，方便读者了解活动。')|e|format(quest, account) }}</p>
       <figure class="play-card">
         <figcaption>{{ t('Example invitation','邀请示例') }}</figcaption>
         <img class="play-stamp" src="{{ url_for('static',filename='brand/mark.svg') }}" width="54" height="68" alt="">
         <blockquote>{{ t('Find a plant growing through a crack. Where did it find room to put down roots?','找一株从缝隙里长出来的植物。它在哪里找到了落脚的地方？') }}</blockquote>
-        <span class="play-tag">{{ quest }} <a href="https://x.com/Dear_Elsewhere_">@Dear_Elsewhere_</a></span>
+        {{ signature(quest) }}
       </figure>
     </section>
     <section class="play-step return-post">
       <h2><span aria-hidden="true">↳</span> {{ t('Write back','写回信') }}</h2>
-      <p>{{ t('Try the task, then reply directly to the original post. Share what you found in words, a photo or a video. Include the reply hashtag %s.','完成探索后，直接回复那条邀请原帖，用文字、照片或视频寄回发现。带上回信标签 %s')|e|format(done) }}</p>
+      <p>{{ t('Try the invitation, then reply directly to the original post with a few words, a photo or a video. Add %s so your reply appears under the invitation, and mention %s.','完成探索后，直接回复那条邀请原帖，用文字、照片或视频寄回发现。带上回信标签 %s，让网站把回信收在这封邀请下，并提及项目账号 %s。')|e|format(done, account) }}</p>
       <figure class="play-card">
         <figcaption>{{ t('Example reply','回信示例') }}</figcaption>
         <span class="postage play-stamp" aria-hidden="true"><img src="{{ url_for('static',filename='stamp-butterfly.webp') }}" width="56" height="56" alt=""></span>
         <blockquote>{{ t('A little fern in the station steps. The rain had stopped, but one drop still hung from the tip of a leaf.','车站台阶的砖缝里有一株小蕨。雨已经停了，叶尖还挂着一滴水。') }}</blockquote>
-        <span class="play-tag">{{ done }} <a href="https://x.com/Dear_Elsewhere_">@Dear_Elsewhere_</a></span>
+        {{ signature(done) }}
       </figure>
     </section>
   </div>
@@ -38,7 +42,7 @@
     <p>{{ t('Draw three letters and choose one. Every invitation stays open, so you can write back in your own time.','从树上随机抽三封邀请，挑一封带出门。所有邀请长期开放。') }}</p>
     <a class="button" href="{{ url_for('home',draw=1) }}">{{ t('Pick three letters','抽三封信') }} <span aria-hidden="true">→</span></a>
   </div>
-  <p class="copy-status" role="status" data-copied="{{ t('Copied','已复制') }}" data-manual="{{ t('Tag selected. Use Copy to copy it.','已选中标签，请使用系统的复制操作。') }}"></p>
+  <p class="copy-status" role="status" data-copied="{{ t('Copied','已复制') }}" data-manual="{{ t('Text selected. Use Copy to copy it.','已选中文字，请使用系统的复制操作。') }}"></p>
 </article>
-<script defer src="{{ url_for('static', filename='copy-tags.js') }}"></script>
+<script defer src="{{ url_for('static', filename='copy-tags.js', v='signature') }}"></script>
 {% endblock %}
