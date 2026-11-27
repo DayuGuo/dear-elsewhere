@@ -1,9 +1,14 @@
-{% macro source(row, demo, letters) %}
+{% macro post_date(ident, created, demo) -%}
+  {% if not demo %}<a class="post-origin" href="https://x.com/i/web/status/{{ ident }}" aria-label="{{ t('Read original on X','在 X 阅读原帖') }} · {{ created|date }}">{% endif %}
+  <time datetime="{{ created }}">{{ created|date }}</time>{% if not demo %} <span aria-hidden="true">X ↗</span></a>{% endif %}
+{%- endmacro %}
+
+{% macro source(row, demo, letters, show_link=true) %}
 {% if demo %}
   <p class="letter">{{ letters[row.id] }}</p>
 {% else %}
   <div class="embed" data-post="{{ row.id }}"{% if row.show_photos %} data-photos{% endif %}></div>
-  <a class="source" href="https://x.com/i/web/status/{{ row.id }}">{{ t('Read original on X','在 X 阅读原帖') }} ↗</a>
+  {% if show_link %}<a class="source" href="https://x.com/i/web/status/{{ row.id }}">{{ t('Read original on X','在 X 阅读原帖') }} ↗</a>{% endif %}
 {% endif %}
 {% endmacro %}
 

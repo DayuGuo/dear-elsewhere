@@ -5,7 +5,7 @@
 <div class="reading">
   <a class="back" href="/#branches">← {{ t('All letters','所有来信') }}</a>
   <p class="meta">{% if demo %}{{ t('Fictional preview','模拟来信') }} · {% endif %}{{ invitation.created|date }}</p>
-  <h1>{{ t('Invitation','一封探索邀请') }}</h1>
+  <h1>{{ t('Exploration task','探索任务') }}</h1>
   <div class="branch-root">{{ source(invitation,demo,letters) }}</div>
   <p>{{ t('Try this invitation where you live. Reply directly to the original post on X with','在你生活的地方试试这封邀请，然后在 X 上直接回复原帖，带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p>
   {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">{{ t('Reply on X','去 X 写回信') }} ↗</a>{% endif %}

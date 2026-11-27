@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "parts.html" import source, pager, widgets %}
+{% from "parts.html" import source, post_date, pager, widgets %}
 {% block main %}
 {% if drawn is none %}
 <section class="frontispiece">
@@ -8,6 +8,7 @@
     <p class="intro">{{ t('Draw three letters from strangers. Choose one to take outside, then write back on X with what you find.','抽三封来信，选一封带出门。把路上的发现写成回信，寄回 X 上的原帖。') }}</p>
     <div class="mast-actions">
       <form action="/" method="get"><button name="draw" value="1" class="button">{{ t('Pick three letters','从树上取三封信') }} <span aria-hidden="true">→</span></button></form>
+      <a class="guide-link" href="#how-to-play">{{ t('How to play','参与玩法') }} ↓</a>
     </div>
   </div>
   <figure class="specimen">
@@ -58,6 +59,36 @@
 {% endif %}
 
 {% if drawn is none %}
+<section id="branches" aria-labelledby="index-title">
+  <div class="section-head"><h2 id="index-title">{{ t('Tasks & replies','任务与回信') }}</h2><span class="meta">{{ t('Fictional preview','模拟来信') if demo else t('Newest first','最新任务优先') }}</span></div>
+  {% if rows %}
+  <div class="thread-grid">
+    {% for row in rows %}
+    <article class="thread-card">
+      <header class="thread-heading">
+        <h3 class="task-label">{{ t('Task','任务') }}</h3>
+        {{ post_date(row.id,row.created,demo) }}
+      </header>
+      <div class="thread-post">{{ source(row,demo,letters,false) }}</div>
+      {% if row.reply_id %}
+      <details class="thread-reply" open>
+        <summary><span class="reply-label">{{ t('Latest reply','最新回信') if row.replies > 1 else t('Reply','回信') }}</span>{{ post_date(row.reply_id,row.reply_created,demo) }}</summary>
+        {{ source({'id':row.reply_id,'show_photos':row.reply_photos},demo,letters,false) }}
+      </details>
+      {% endif %}
+      <footer class="thread-foot">
+        <span>{{ (t('%d reply' if row.replies == 1 else '%d replies','%d 封回信')|format(row.replies)) if row.replies else t('Awaiting a reply','等待第一封回信') }}</span>
+        <a href="{{ url_for('quest',ident=row.id) }}">{{ t('Open thread','查看任务') }} <span aria-hidden="true">→</span></a>
+      </footer>
+    </article>
+    {% endfor %}
+  </div>
+  <script defer src="{{ url_for('static',filename='thread-grid.js') }}"></script>
+  {% else %}
+  <div class="empty"><p>{{ t('The first letter is still to come.','第一封邀请还在路上。') }}</p><a class="action" href="#how-to-play">{{ t('Send an invitation','寄出一封邀请') }} ↓</a></div>
+  {% endif %}
+  {{ pager(number,more,'#branches') }}
+</section>
 <section id="how-to-play" class="guide">
   <h2>{{ t('How to play','参与玩法') }}</h2>
   <ol class="steps">
@@ -65,28 +96,6 @@
     <li><h3>{{ t('Write back','写封回信') }}</h3><p>{{ t('Reply directly to the original post on X with words, a photo, or a video. Add','在 X 上直接回复原帖，用文字、照片或视频分享你的发现。带上') }} <b>#DearElsewhereDone</b>{{ t('.','。') }}</p></li>
     <li><h3>{{ t('Send your own','发出邀请') }}</h3><p>{{ t('What would you love to see from elsewhere? Ask in an original public post on X with','你想看看别处的什么？在 X 上发一条公开原创帖，写下邀请，并带上') }} <b>#DearElsewhereQuest</b>{{ t('.','。') }}</p></li>
   </ol>
-</section>
-
-<section id="branches">
-  <div class="section-head"><h2>{{ t('Letters & replies','来信与回音') }}</h2><span class="meta">{{ t('Fictional preview','模拟来信') if demo else t('Newest invitations first','按邀请时间倒序') }}</span></div>
-  {% for row in rows %}
-  <article class="branch">
-    <div class="branch-root">
-      <p class="meta">{{ t('Invitation','邀请') }} · <time datetime="{{ row.created }}">{{ row.created|date }}</time></p>
-      {{ source(row,demo,letters) }}
-      <a class="action" href="{{ url_for('quest',ident=row.id) }}">{{ t('Open invitation','展开来信') }} · {{ row.replies }} {{ t('reply' if row.replies == 1 else 'replies','封回信') }} →</a>
-    </div>
-    {% if row.reply_id %}
-    <details class="branch-reply" open>
-      <summary class="meta">{{ t('Latest reply','最近的回信') }} · <time datetime="{{ row.reply_created }}">{{ row.reply_created|date }}</time></summary>
-      {{ source({'id':row.reply_id,'created':row.reply_created,'show_photos':row.reply_photos},demo,letters) }}
-    </details>
-    {% endif %}
-  </article>
-  {% else %}
-  <div class="empty"><p>{{ t('The first letter is still to come.','第一封邀请还在路上。') }}</p><a class="action" href="/#how-to-play">{{ t('Send an invitation','寄出一封邀请') }} ↑</a></div>
-  {% endfor %}
-  {{ pager(number,more,'#branches') }}
 </section>
 {% endif %}
 {% if (rows or drawn) and not demo %}{{ widgets() }}{% endif %}
