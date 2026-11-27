@@ -124,6 +124,11 @@ def quest(ident):
     return render_template("quest.html", invitation=invitation, **result)
 
 
+@app.get("/how-to-play")
+def how_to_play():
+    return render_template("how-to-play.html")
+
+
 @app.get("/about")
 def about():
     return render_template("about.html")

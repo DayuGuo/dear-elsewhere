@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "parts.html" import source, post_date, pager, widgets, play_steps %}
+{% from "parts.html" import source, post_date, pager, widgets %}
 {% block main %}
 {% if drawn is none %}
 <section class="frontispiece" aria-labelledby="welcome">
@@ -7,7 +7,7 @@
   <p class="intro">{{ t('Pick three letters from the tree. Take one invitation outside, then reply on X with what you find.','从树上抽三封来信，挑一封带出门。回来时，在 X 原帖下寄回你的发现。') }}</p>
   <div class="mast-actions">
     <a class="button" href="/?draw=1">{{ t('Pick three letters','抽三封信') }} <span aria-hidden="true">→</span></a>
-    <a class="guide-link" href="#how-to-play">{{ t('How to play','参与玩法') }}</a>
+    <a class="guide-link" id="how-to-play" href="{{ url_for('how_to_play', lang=request.args.get('lang')) }}">{{ t('How to play','参与玩法') }}</a>
   </div>
   <a class="tree-draw" href="/?draw=1" aria-label="{{ t('Pick three letters from the tree','从挂信树上取三封信') }}">
     <img src="{{ url_for('static',filename='letter-tree.webp') }}" width="1402" height="1122" alt="{{ t('A wild rose tree with letters tied to its branches.','枝头挂着信封的野蔷薇树。') }}">
@@ -45,7 +45,7 @@
     <script defer src="{{ url_for('static',filename='letters.js') }}"></script>
   {% else %}
     <p>{{ t('There are no invitations available in this draw.','暂时还没有可抽取的邀请。') }}</p>
-    <a class="action" href="/#how-to-play">{{ t('See how to send one','看看怎样寄出第一封') }} ↓</a>
+    <a class="action" href="{{ url_for('how_to_play') }}">{{ t('See how to send one','看看怎样寄出第一封') }} →</a>
   {% endif %}
 </section>
 {% endif %}
@@ -76,14 +76,18 @@
   </div>
   <script defer src="{{ url_for('static',filename='thread-grid.js') }}"></script>
   {% else %}
-  <div class="empty"><p>{{ t('The first letter is still to come.','第一封邀请还在路上。') }}</p><a class="action" href="#how-to-play">{{ t('Send an invitation','寄出一封邀请') }} ↓</a></div>
+  <div class="empty"><p>{{ t('The first letter is still to come.','第一封邀请还在路上。') }}</p><a class="action" href="{{ url_for('how_to_play') }}">{{ t('Send an invitation','寄出一封邀请') }} →</a></div>
   {% endif %}
   {{ pager(number,more,'#branches') }}
 </section>
-<section id="how-to-play" class="guide">
-  <h2>{{ t('How to play','参与玩法') }}</h2>
-  {{ play_steps() }}
-</section>
+<script>
+  // Fragments stay in the browser, so Flask cannot redirect old guide bookmarks.
+  function followGuideBookmark() {
+    if (location.hash === "#how-to-play") location.replace(document.getElementById("how-to-play").href);
+  }
+  followGuideBookmark();
+  window.addEventListener("hashchange", followGuideBookmark);
+</script>
 {% endif %}
 {% if (rows or drawn) and not demo %}{{ widgets() }}{% endif %}
 {% endblock %}

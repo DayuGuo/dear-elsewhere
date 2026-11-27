@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from "parts.html" import play_steps %}
 {% block title %}{{ t('About','关于') }} · Dear Elsewhere{% endblock %}
 {% block main %}
 <article class="about">
@@ -9,12 +8,8 @@
     <p class="lede">{{ t('An invitation to notice the world.','一份重新观察世界的邀请。') }}</p>
   <p>{{ t('Dear Elsewhere is a small, open-ended game played in the world and shared on X. Anyone can send an invitation. Someone elsewhere can go outside, follow their curiosity, and write back.','致别处是一场在现实中探索、在 X 上通信的小游戏。任何人都可以寄出邀请。远方的人读到它，就可以带着这份好奇出门，再把一路上的发现写成回信。') }}</p>
   <p>{{ t('Invitations stay open. Take your time and interpret them your own way. There are no deadlines, scores, or correct answers.','邀请长期开放。你可以按自己的步调、用自己的方式回应，每个人眼中的风景都值得寄来。') }}</p>
+    <a id="participate" class="guide-link" href="{{ url_for('how_to_play') }}">{{ t('How to play','参与玩法') }} →</a>
   </header>
-  <section class="guide" id="participate">
-    <h2>{{ t('How to take part','如何参与') }}</h2>
-    {{ play_steps() }}
-    <a class="button" href="/?draw=1">{{ t('Pick three letters','抽三封信') }} →</a>
-  </section>
   <section class="index-note"><h2>{{ t('A public index','一份公共索引') }}</h2>
   <p>{{ t('The site checks public posts hourly and connects invitations with their replies. You can play entirely on X. The index keeps post identifiers, dates, and connections. The writing and media stay with their authors on X. Opening a page with embedded posts also connects your browser to X.','网站每小时检索公开帖子，将邀请和回信连在一起。你可以全程在 X 上参与。索引保存帖子编号、时间和关联，文字与影像由作者发布在 X 上。浏览内嵌帖子时，浏览器会连接到 X。') }}</p>
   {% if contact %}<p>{{ t('For a removal or a broken link, send the post URL to','需要移除记录或反馈失效链接，请将原帖网址发送至') }} <a href="mailto:{{ contact }}">{{ contact }}</a>{{ t('.','。') }}</p>{% endif %}

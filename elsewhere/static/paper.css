@@ -87,11 +87,10 @@ b { color: var(--olive); overflow-wrap: anywhere; font-weight: 600; }
 .mast-actions { grid-area: actions; align-self: start; flex-wrap: wrap; }
 .tree-draw { grid-area: tree; width: min(100%, 25rem); justify-self: center; mix-blend-mode: multiply; }
 .tree-draw img { display: block; width: 100%; height: auto; filter: brightness(1.04); mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent), linear-gradient(0deg, transparent, black 5%, black 95%, transparent); mask-composite: intersect; }
-#branches, .guide, .index-note { margin-top: clamp(2rem, 4vw, 3.6rem); }
+#branches, .index-note { margin-top: clamp(2rem, 4vw, 3.6rem); }
 .section-head, .draw-head, .entry-head { justify-content: space-between; align-items: baseline; margin-bottom: 1rem; }
-.steps { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: clamp(1.3rem, 3vw, 2.5rem); margin-top: 1.2rem; }
-.steps p, .index-note p { margin-top: .45rem; }
-.guide .button { margin-top: 1.4rem; }
+.index-note p { margin-top: .45rem; }
+.about-letter .guide-link { margin-top: .8rem; }
 .pager { margin-top: 1rem; color: var(--olive); }
 body > footer { justify-content: space-between; flex-wrap: wrap; color: var(--muted); margin-top: 3rem; padding-block: 1rem 1.7rem; font: italic 1.02rem/1.5 var(--serif); }
 :lang(zh-CN) body > footer { font: 400 .83rem/1.5 var(--song); }
@@ -156,6 +155,37 @@ body > footer { justify-content: space-between; flex-wrap: wrap; color: var(--mu
 .index-note { padding: var(--inset); border-radius: var(--corner); background: var(--leaf); overflow-wrap: anywhere; }
 .index-note p { max-width: 43rem; }
 
+/* A pair of field postcards, outgoing and returning. */
+.playbook { max-width: 62rem; margin: clamp(1.5rem, 4vw, 3.5rem) auto; }
+.play-intro { max-width: 38rem; }
+.play-intro p { margin-top: .75rem; text-wrap: pretty; }
+.postcard-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: clamp(1rem, 3vw, 2.2rem); margin-top: clamp(1.7rem, 4vw, 3rem); }
+.play-step { display: grid; grid-template-rows: subgrid; grid-row: span 3; gap: .6rem; min-width: 0; }
+.play-step > p { max-width: 46ch; text-wrap: pretty; }
+.return-post h2 { color: var(--olive); }
+.return-post h2 span { font: 400 .8em var(--ui); }
+.play-card {
+  display: grid; grid-template-columns: minmax(0,1fr) auto; align-content: start; align-items: start;
+  grid-template-rows: 4.1rem 1fr auto; gap: .9rem .7rem; margin: .45rem 0 0; padding: clamp(1rem, 2.5vw, 1.8rem);
+  background: var(--sheet); border-radius: var(--corner);
+}
+.return-post .play-card { background: var(--leaf); }
+.play-card figcaption, .play-tag { font: 500 .8rem/1.5 var(--ui); color: var(--muted); }
+.play-stamp { grid-area: 1 / 2; width: 3.35rem; height: auto; justify-self: end; transform: rotate(5deg); }
+.return-post .play-stamp { transform: rotate(-5deg); }
+.play-card blockquote { grid-column: 1 / -1; margin: 0; max-width: 29ch; text-wrap: pretty; font: 500 1.55rem/1.35 var(--serif); }
+:lang(zh-CN) .play-card blockquote { font: 500 1.15rem/1.7 var(--song); }
+.play-tag { grid-column: 1 / -1; color: var(--olive); overflow-wrap: anywhere; user-select: all; }
+.play-start { margin-top: 1.6rem; display: flex; align-items: center; gap: .8rem 2rem; justify-content: space-between; flex-wrap: wrap; }
+.play-start p { max-width: 35rem; }
+@media (max-width: 42rem) {
+  .postcard-pair { grid-template-columns: 1fr; gap: 1.5rem; }
+  .play-step { display: block; grid-row: auto; }
+  .play-step > p { max-width: none; margin-top: .4rem; }
+  .play-card { grid-template-rows: auto auto auto; margin-top: .7rem; gap: .55rem; }
+  .play-stamp { width: 2.6rem; grid-column: 2; grid-row: 1 / 3; }
+  .play-card blockquote { grid-column: 1; }
+}
 @media (max-width: 740px) {
   .wrapper { width: calc(100% - 1.9rem); }
   .top { gap: .55rem; padding-block: .65rem; }
@@ -165,7 +195,6 @@ body > footer { justify-content: space-between; flex-wrap: wrap; color: var(--mu
   .frontispiece h1 { align-self: center; font-size: clamp(2rem, 8.5vw, 3.8rem); }
   :lang(zh-CN) .frontispiece h1 { font-size: clamp(1.35rem, 5.8vw, 2.3rem); }
   .tree-draw { max-width: 13rem; }
-  .steps { grid-template-columns: 1fr; gap: 1rem; }
   .choices { grid-template-columns: minmax(0,1fr); }
   .choice summary { grid-template: "stamp date mark" auto "stamp label mark" auto / auto minmax(0,1fr) auto; gap: .15rem .9rem; }
   .postage { width: 3.6rem; }
