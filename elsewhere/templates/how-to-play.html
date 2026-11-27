@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ t('How to play','参与玩法') }} · Dear Elsewhere{% endblock %}
+{% block description %}{{ t('Post an invitation on X with #DearElsewhereQuest, then reply to an original invitation with #DearElsewhereDone. See examples and copy either hashtag.','在 X 用 #DearElsewhereQuest 发出探索邀请，完成后直接回复原帖并带上 #DearElsewhereDone。这里有明信片示例和可复制的标签。') }}{% endblock %}
 {% macro copy_tag(tag) -%}
 <span class="hashtag" data-action="{{ t('Copy','复制') }}">{{ tag }}</span>
 {%- endmacro %}

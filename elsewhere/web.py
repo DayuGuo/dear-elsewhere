@@ -1,8 +1,9 @@
 import os
 from datetime import datetime
 from urllib.parse import urlencode
+from xml.etree import ElementTree as ET
 
-from flask import Flask, abort, g, redirect, render_template, request, url_for
+from flask import Flask, Response, abort, g, redirect, render_template, request, url_for
 
 from .db import MATCH_REPLY, connect, state
 
@@ -81,6 +82,56 @@ def page(sql, params=()):
     return dict(rows=rows[:SIZE], number=number, more=len(rows) > SIZE)
 
 
+@app.template_global()
+def public_url(endpoint, **values):
+    origin = os.environ.get("DEAR_PUBLIC_URL") or "https://dearelsewhere.anotherdayu.com"
+    return origin.rstrip("/") + url_for(endpoint, **values)
+
+
+@app.get("/robots.txt")
+def robots():
+    return Response(f"User-agent: *\nAllow: /\nSitemap: {public_url('sitemap')}\n",
+                    mimetype="text/plain")
+
+
+# Each invitation has two language URLs. Chunk well below the sitemap URL limit.
+SITEMAP_BATCH = 10_000
+PUBLIC_INVITATIONS = "FROM posts WHERE kind='invitation' AND hidden=0"
+
+
+@app.get("/sitemap.xml", defaults={"part": None})
+@app.get("/sitemap-<int:part>.xml")
+def sitemap(part):
+    demo = state(db(), "demo") == "1"
+    count = 0 if demo else db().execute("SELECT count(*) " + PUBLIC_INVITATIONS).fetchone()[0]
+    parts = max(1, (count + SITEMAP_BATCH - 1) // SITEMAP_BATCH)
+    index = part is None and parts > 1
+    if part is not None and not 1 <= part <= parts:
+        abort(404)
+    root = ET.Element("sitemapindex" if index else "urlset",
+                      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+
+    def add(url):
+        ET.SubElement(ET.SubElement(root, "sitemap" if index else "url"), "loc").text = url
+
+    if index:
+        for n in range(1, parts + 1):
+            add(public_url("sitemap", part=n))
+    elif not demo:
+        if part in (None, 1):
+            for endpoint in ("home", "how_to_play", "about"):
+                for lang in ("en", "zh"):
+                    add(public_url(endpoint, lang=lang))
+        invitations = db().execute("SELECT id " + PUBLIC_INVITATIONS +
+                                   " ORDER BY created, id LIMIT ? OFFSET ?",
+                                   (SITEMAP_BATCH, ((part or 1) - 1) * SITEMAP_BATCH))
+        for row in invitations:
+            for lang in ("en", "zh"):
+                add(public_url("quest", ident=row["id"], lang=lang))
+    return Response(ET.tostring(root, encoding="utf-8", xml_declaration=True),
+                    mimetype="application/xml")
+
+
 @app.get("/")
 def home():
     visible = "kind='invitation' AND hidden=0"
@@ -136,4 +187,4 @@ def about():
 
 @app.errorhandler(404)
 def missing(error):
-    return render_template("missing.html"), 404
+    return render_template("missing.html", indexable=False), 404

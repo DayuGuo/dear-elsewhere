@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "parts.html" import source, pager, widgets %}
 {% block title %}{{ t('Invitation','来信') }} · {{ invitation.created|date }} · Dear Elsewhere{% endblock %}
+{% block description %}{{ t('Read the exploration invitation from %s and follow its replies. Take a walk of your own and write back on the original X post.','查看 %s 的探索邀请和关联回信。你也可以带着这封邀请出门，在 X 原帖下寄回自己的发现。')|format(invitation.created|date) }}{% endblock %}
 {% block main %}
 <article class="reading correspondence">
   <a class="back" href="/#branches">← {{ t('All tasks','全部任务') }}</a>

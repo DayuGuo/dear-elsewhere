@@ -4,6 +4,7 @@ import os
 import tempfile
 import time
 import unittest
+from xml.etree import ElementTree as ET
 from pathlib import Path
 from unittest.mock import Mock, patch
 from urllib.error import HTTPError, URLError
@@ -53,6 +54,30 @@ class IndexTests(unittest.TestCase):
         self.assertIn(b"wooden shutter", self.web.get("/quest/102").data)
         self.assertEqual(self.web.get("/about").status_code, 200)
         self.assertEqual(self.web.get("/quest/202").status_code, 404)
+
+    def test_public_metadata_and_sitemap(self):
+        with self.conn:
+            for post in (fixture(1), fixture(2), fixture(3), fixture(4, parent=1)):
+                db.index_post(self.conn, post)
+            self.conn.execute("UPDATE posts SET hidden=1 WHERE id='3'")
+        origin = "https://letters.example"
+        with patch.dict(os.environ, DEAR_PUBLIC_URL=origin), patch("elsewhere.web.SITEMAP_BATCH", 1):
+            self.assertIn(origin + "/sitemap.xml", self.web.get("/robots.txt").text)
+            def locations(path):
+                root = ET.fromstring(self.web.get(path).data)
+                return [loc.text for loc in root.findall(".//{*}loc")]
+            self.assertEqual(locations("/sitemap.xml"), [origin + "/sitemap-1.xml", origin + "/sitemap-2.xml"])
+            urls = locations("/sitemap-1.xml") + locations("/sitemap-2.xml")
+            self.assertEqual(len(set(urls)), 10)
+            for url in urls:
+                path = url.removeprefix(origin)
+                html = self.web.get(path + "&utm_source=x").text
+                self.assertIn(f'<link rel="canonical" href="{url}">', html)
+                self.assertIn('hreflang="zh-Hans"', html)
+                self.assertIn('property="og:image"', html)
+            for path in ("/quest/3", "/quest/4", "/?picks=1", "/quest/1?page=2"):
+                self.assertIn('content="noindex,follow"', self.web.get(path).text)
+                self.assertFalse(any(path + "?" in url for url in urls))
 
     def test_draw_is_distinct_stable_and_uses_visible_invitations_only(self):
         with self.conn:

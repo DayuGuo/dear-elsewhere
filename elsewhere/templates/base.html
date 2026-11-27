@@ -4,7 +4,35 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>{% block title %}{{ t('Dear Elsewhere · 致别处','致别处 · Dear Elsewhere') }}{% endblock %}</title>
+{% set page_title %}{% block title %}{{ t('Dear Elsewhere · An outdoor letter exchange','致别处 Dear Elsewhere · 用回信玩的现实探索游戏') }}{% endblock %}{% if number|default(1) > 1 %} · {{ t('Page %d','第 %d 页')|format(number) }}{% endif %}{% endset %}
+{% set description %}{% block description %}{{ t('Draw an invitation, go outside and share what you notice. Dear Elsewhere brings together open-ended tasks on X and the letters people send back.','从挂信树上抽一封邀请，出门看看，再把发现寄回来。致别处把 X 上开放的探索任务和人们写下的回信收在一起。') }}{% endblock %}{% endset %}
+<title>{{ page_title }}</title>
+{% if demo or indexable is sameas false or (drawn is defined and drawn is not none) %}
+<meta name="robots" content="noindex,follow">
+{% else %}
+{% set params = dict(request.view_args or {}) %}
+{% if number|default(1) > 1 %}{% set params = dict(params, page=number) %}{% endif %}
+{% set canonical = public_url(request.endpoint, lang=g.lang, **params) %}
+<link rel="canonical" href="{{ canonical }}">
+{% for code, lang in [('en','en'), ('zh-Hans','zh')] %}
+<link rel="alternate" hreflang="{{ code }}" href="{{ public_url(request.endpoint, lang=lang, **params) }}">
+{% endfor %}
+<link rel="alternate" hreflang="x-default" href="{{ public_url(request.endpoint, **params) }}">
+<meta name="description" content="{{ description }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Dear Elsewhere">
+<meta property="og:locale" content="{{ t('en_GB','zh_CN') }}">
+<meta property="og:title" content="{{ page_title }}">
+<meta property="og:description" content="{{ description }}">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:image" content="{{ public_url('static', filename='brand/x-cover.png') }}">
+<meta property="og:image:alt" content="{{ t('Letters hanging from a flowering wild rose.','一棵枝头挂着信封的野蔷薇。') }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@Dear_Elsewhere_">
+{% if request.endpoint == 'home' and number == 1 %}
+<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'WebSite','name':'Dear Elsewhere','alternateName':'致别处','url':public_url('home'),'inLanguage':['en','zh-Hans']}|tojson }}</script>
+{% endif %}
+{% endif %}
 <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='brand/favicon.png', v='rose') }}">
 <link rel="icon" type="image/svg+xml" sizes="any" href="{{ url_for('static', filename='brand/favicon.svg') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='paper.css', v='sky') }}">

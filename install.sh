@@ -61,6 +61,7 @@ if [[ -f $config ]]; then
     chmod 0600 "$config"
     template=$config
 fi
+token=
 if "$replace_token" || ! awk '
     /^X_BEARER_TOKEN=/ {v=substr($0,16)}
     END {gsub(/[[:space:]"\047]/, "", v); exit !length(v)}
@@ -69,11 +70,20 @@ if "$replace_token" || ! awk '
     IFS= read -rs token </dev/tty || fail "需要交互式 SSH 终端来输入 Token。"
     printf '\n' >/dev/tty
     [[ $token =~ ^[a-zA-Z0-9._~+/%=-]+$ ]] || fail "Token 为空或包含无效字符，请重新运行并粘贴完整的 Bearer Token。"
-    pending_config=$(mktemp /etc/.dear-elsewhere.env.XXXXXXXX)
-    awk '!/^X_BEARER_TOKEN=/' "$template" > "$pending_config"
-    printf 'X_BEARER_TOKEN=%s\n' "$token" >> "$pending_config"
-    unset token
 fi
+if [[ -n $token || $domain != - ]]; then
+    pending_config=$(mktemp /etc/.dear-elsewhere.env.XXXXXXXX)
+    update_token=0
+    if [[ -n $token ]]; then update_token=1; fi
+    awk -v update_token="$update_token" -v domain="$domain" '
+        update_token && /^X_BEARER_TOKEN=/ { next }
+        domain != "-" && /^DEAR_PUBLIC_URL=/ { next }
+        { print }
+    ' "$template" > "$pending_config"
+    if [[ -n $token ]]; then printf 'X_BEARER_TOKEN=%s\n' "$token" >> "$pending_config"; fi
+    if [[ $domain != - ]]; then printf 'DEAR_PUBLIC_URL=https://%s\n' "$domain" >> "$pending_config"; fi
+fi
+unset token
 
 if ! getent passwd dear-elsewhere >/dev/null; then
     useradd --system --user-group --home-dir /var/lib/dear-elsewhere --no-create-home --shell /usr/sbin/nologin dear-elsewhere

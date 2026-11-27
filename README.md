@@ -95,6 +95,7 @@ Gunicorn 使用一个 worker 和两个线程。systemd 在启动网站前初始�
 | `X_BEARER_TOKEN` | 留空 | X 开发者应用的 app-only Bearer Token，真实查询时必填 |
 | `X_MONTHLY_READ_LIMIT` | `1500` | UTC 自然月内搜索和按 ID 复查共享的本地读取额度，设为 0 可暂停所有 API 读取 |
 | `X_MAX_PAGES` | `12` | 每轮最多处理的搜索页数，达到上限后下轮续跑 |
+| `DEAR_PUBLIC_URL` | `https://dearelsewhere.anotherdayu.com` | 搜索引擎和分享卡片使用的公开地址。一键安装时自动使用填写的域名 |
 | `DEAR_CONTACT_EMAIL` | 留空 | 公开站点的联系邮箱，配置后 About 显示移除及失效链接反馈入口 |
 
 Gunicorn 监听 `127.0.0.1:8791`，公网 80/443 由反向代理监听。自管代理可在现有站点管理工具中将域名转发到这个上游。容器内的代理需要能连接宿主机上的上游。
