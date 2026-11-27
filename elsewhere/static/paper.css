@@ -101,6 +101,8 @@ b { color: var(--olive); overflow-wrap: anywhere; font-weight: 600; }
 .about-letter .guide-link { margin-top: .8rem; }
 .pager { margin-top: 1rem; color: var(--olive); }
 body > footer { justify-content: space-between; flex-wrap: wrap; color: var(--muted); margin-top: 3rem; padding-block: 1rem 1.7rem; font: italic 1.02rem/1.5 var(--serif); }
+.footer-links { display: flex; flex-wrap: wrap; gap: .25rem 1.2rem; font: 400 .83rem/1.5 var(--ui); }
+.footer-links a { display: inline-flex; align-items: center; min-height: 2.75rem; }
 :lang(zh-CN) body > footer { font: 400 .83rem/1.5 var(--song); }
 
 .draw, .reading, .about { margin: clamp(1.1rem, 4vw, 3rem) auto; }

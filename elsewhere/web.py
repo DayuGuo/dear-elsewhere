@@ -38,6 +38,15 @@ def t(english, chinese):
 
 
 @app.template_global()
+def compose_url(reply_to=None):
+    tag = "#DearElsewhereDone" if reply_to else "#DearElsewhereQuest"
+    params = {"text": f"{tag} @Dear_Elsewhere_"}
+    if reply_to:
+        params["in_reply_to"] = reply_to
+    return "https://x.com/intent/tweet?" + urlencode(params)
+
+
+@app.template_global()
 def language_url(language):
     params = request.args.to_dict()
     params["lang"] = language

@@ -35,7 +35,7 @@
 {% endif %}
 <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='brand/favicon.png', v='rose') }}">
 <link rel="icon" type="image/svg+xml" sizes="any" href="{{ url_for('static', filename='brand/favicon.svg') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='paper.css', v='photo-cards') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='paper.css', v='footer-links') }}">
 </head>
 <body>
 <a href="#main" class="skip">{{ t('Skip to content','跳至正文') }}</a>
@@ -53,7 +53,13 @@
   </nav>
 </header>
 <main id="main" class="wrapper">{% block main %}{% endblock %}</main>
-<footer class="wrapper"><span>{{ t('From somewhere, to someone, with curiosity.','从某处，寄给某人，带着好奇。') }}</span>{% if demo and drawn is defined and drawn is not none %}<small>{{ t('Fictional preview','模拟来信') }}</small>{% endif %}</footer>
+<footer class="wrapper">
+  <span>{{ t('From somewhere, to someone, with curiosity.','从某处，寄给某人，带着好奇。') }}</span>{% if demo and drawn is defined and drawn is not none %}<small>{{ t('Fictional preview','模拟来信') }}</small>{% endif %}
+  <nav class="footer-links" aria-label="{{ t('Around the project','项目相关链接') }}">
+    <a href="https://anotherdayu.com/">{{ t('Personal blog · Another Dayu','个人博客 · Another Dayu') }}</a>
+    <a href="https://x.com/Dear_Elsewhere_">X · @Dear_Elsewhere_</a>
+  </nav>
+</footer>
 {% if analytics_token %}
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ {"token": analytics_token}|tojson }}'></script>
 {% endif %}

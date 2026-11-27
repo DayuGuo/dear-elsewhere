@@ -21,8 +21,8 @@
     {{ pager(number,more,'#replies') }}
   </section>
   <div class="compose">
-    <p>{{ t('After your walk, reply to the original post with','探索回来后，直接回复原帖，带上') }} <b>#DearElsewhereDone</b>{{ t(', including the opening # so your reply is recognized.','，保留开头的半角 #，网站才能识别这封回信。') }}</p>
-    {% if not demo %}<a class="button" href="https://twitter.com/intent/tweet?in_reply_to={{ invitation.id }}&amp;hashtags=DearElsewhereDone">{{ t('Reply on X','去 X 写回信') }} ↗</a>{% endif %}
+    <p>{{ t('After your walk, reply to the original post with','探索回来后，直接回复原帖，带上') }} <b>#DearElsewhereDone</b>{{ t(', and mention @Dear_Elsewhere_ so readers can find the project.','，并提及项目账号 @Dear_Elsewhere_。') }}</p>
+    {% if not demo %}<a class="button" href="{{ compose_url(invitation.id) }}">{{ t('Reply on X','去 X 写回信') }} ↗</a>{% endif %}
   </div>
 </article>
 {% if not demo %}{{ widgets() }}{% endif %}

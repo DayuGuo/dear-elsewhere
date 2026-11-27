@@ -7,7 +7,7 @@
   <p class="intro">{{ t('Pick three letters from the tree. Take one invitation outside, then reply on X with what you find.','从树上抽三封来信，挑一封带出门。回来时，在 X 原帖下寄回你的发现。') }}</p>
   <div class="mast-actions">
     <a class="button" href="/?draw=1">{{ t('Pick three letters','抽三封信') }} <span aria-hidden="true">→</span></a>
-    <a class="button compose-invitation" href="https://x.com/intent/tweet?hashtags=DearElsewhereQuest">{{ t('Post a task','发布任务') }} <span aria-hidden="true">↗</span></a>
+    <a class="button compose-invitation" href="{{ compose_url() }}">{{ t('Post a task','发布任务') }} <span aria-hidden="true">↗</span></a>
     <a class="guide-link" id="how-to-play" href="{{ url_for('how_to_play', lang=request.args.get('lang')) }}">{{ t('How to play','参与玩法') }}</a>
   </div>
   <a class="tree-draw" href="/?draw=1" aria-label="{{ t('Pick three letters from the tree','从挂信树上取三封信') }}">
