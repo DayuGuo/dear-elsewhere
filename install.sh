@@ -35,11 +35,24 @@ trap cleanup EXIT
 
 echo '正在安装依赖并下载 Dear Elsewhere…'
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl git python3 python3-venv
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates curl git iproute2 python3 python3-venv
 python3 -c 'import sys; sys.exit(sys.version_info < (3, 11))' ||
     fail "需要 Python 3.11 或以上版本，建议使用 Debian 12+ 或 Ubuntu 24.04+。"
 git clone --quiet --depth 1 --branch main https://github.com/DayuGuo/dear-elsewhere.git "$work/source"
 cd "$work/source"
+
+default_domain=dearelsewhere.anotherdayu.com
+if [[ -s /etc/dear-elsewhere.domain ]]; then
+    read -r default_domain < /etc/dear-elsewhere.domain
+fi
+printf '公网域名 [%s]（回车接受，输入 - 跳过 HTTPS 配置）：' "$default_domain" >/dev/tty
+IFS= read -r domain </dev/tty || fail "请在交互式 SSH 终端中运行。"
+domain=$(printf '%s' "${domain:-$default_domain}" | LC_ALL=C tr 'A-Z' 'a-z')
+label='[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?'
+if [[ $domain != - ]]; then
+    [[ ${#domain} -le 253 && $domain =~ ^(${label}\.)+[a-z]{2,63}$ ]] ||
+        fail "请输入完整的公网域名，例如 dearelsewhere.anotherdayu.com。"
+fi
 
 # Only systemd reads this file. Never source it or pass the token to a child process.
 template=.env.example
@@ -93,8 +106,19 @@ echo "首页已就绪：$site"
 systemctl enable --now "$timer"
 systemctl is-active --quiet "$timer" || fail "定时器未启动，请运行 systemctl status $timer"
 systemctl list-timers --all "$timer" --no-pager
+result=0
 echo '正在执行一次 X 标签同步…'
 if ! systemctl start "$sync"; then
-    fail "本次同步失败。网站和每小时定时器已启动。查看 sudo journalctl -u $sync -n 40；更换 Token 可用 --replace-token。"
+    echo "本次同步失败，每小时定时器已启用。查看 sudo journalctl -u $sync -n 40；更换 Token 可用 --replace-token。" >&2
+    result=1
 fi
-echo '安装完成。网站已启动，同步命令已成功执行，每小时自动运行。'
+if [[ $domain != - ]]; then
+    if bash deploy/https.sh "$domain"; then
+        printf '%s\n' "$domain" > /etc/dear-elsewhere.domain
+        echo "网站已通过 HTTPS 检查：https://$domain/"
+    else
+        echo "HTTPS 尚未就绪。本机网站和定时器已启动；修正提示的问题后重新运行安装命令。" >&2
+        result=1
+    fi
+fi
+exit "$result"

@@ -34,19 +34,21 @@
 
 ## VPS 一键安装
 
+默认站点为 **https://dearelsewhere.anotherdayu.com/**。首次安装前，在 `anotherdayu.com` 的 DNS 管理面板添加 A 记录，主机名填 `dearelsewhere`，值填 VPS 公网 IPv4。若使用 AAAA 记录，指向同一台可通过 IPv6 访问的 VPS。使用 Cloudflare 时可先选「仅 DNS」。在云防火墙及 VPS 防火墙放行入站 TCP 80 和 443，Gunicorn 的 8791 端口只需在本机监听。
+
 在使用 systemd 的 Debian 12+ 或 Ubuntu 24.04+ VPS 上登录交互式 SSH，准备好 X 应用的 **Bearer Token** 和 `curl`，然后执行：
 
 ```sh
 curl -fsSLo "$HOME/dear-elsewhere-install.sh" https://raw.githubusercontent.com/DayuGuo/dear-elsewhere/main/install.sh && sudo bash "$HOME/dear-elsewhere-install.sh"
 ```
 
-按提示粘贴 Token 并回车，输入时屏幕不会显示字符。脚本从公开仓库下载 main 分支，安装依赖，启动 Gunicorn，检查首页，开启每小时定时器，并立即执行一次同步。首次同步查询最近七天，可能使用 X API 额度。如果 X 拒绝请求，脚本会提示失败并给出日志命令，网站和定时器继续运行。
+域名提示直接回车即可使用默认域名，也可填写自己的子域名。首次安装时再粘贴 X Bearer Token，输入隐藏。脚本启动网站和每小时定时器，立即执行一次标签同步，然后配置 HTTPS。首次同步查询最近七天，可能使用 X API 额度。同步和 HTTPS 分别报告结果，任一失败时脚本返回非零状态。
 
-网站监听 VPS 的 `127.0.0.1:8791`。要从自己电脑预览，请在**本机**另开终端运行以下命令，把 `用户名@VPS地址` 换成自己的 SSH 登录地址，然后打开 <http://127.0.0.1:18791>。
+- **空闲 VPS** 使用 Caddy 自动签发和续期证书，并将 HTTP 跳转到 HTTPS。
+- **已有反向代理** 时，脚本复用运行中的标准 systemd Caddy 或 Nginx。Caddy 使用标准 Caddyfile，Nginx 使用包含在主配置中的 `/etc/nginx/conf.d/*.conf`。Nginx 路径通过 Certbot 的 webroot 模式向 Let's Encrypt 申请证书，接受其订户协议，启用 `certbot.timer`，续期后重载 Nginx。已有其他服务占用公网端口时，脚本会提示在该服务中添加域名，并保留已运行的应用和定时器。
+- **仅本机测试** 时，域名提示输入 `-` 会跳过代理配置。可从自己电脑运行 `ssh -N -L 18791:127.0.0.1:8791 用户名@VPS地址`，再打开 <http://127.0.0.1:18791>。已有的公网配置会继续生效。
 
-```sh
-ssh -N -L 18791:127.0.0.1:8791 用户名@VPS地址
-```
+安装成功后直接打开脚本显示的 HTTPS 地址。如果 DNS 尚未生效或证书未签发，检查解析及端口后重新执行同一条命令，已有 X Token 和数据会保留。
 
 在 VPS 上可查看下次同步时间和最近的同步结果：
 
@@ -95,7 +97,7 @@ Gunicorn 使用一个 worker 和两个线程。systemd 在启动网站前初始�
 | `X_MAX_PAGES` | `12` | 每轮最多处理的搜索页数，达到上限后下轮续跑 |
 | `DEAR_CONTACT_EMAIL` | 留空 | 公开站点的联系邮箱，配置后 About 显示移除及失效链接反馈入口 |
 
-默认只监听回环地址 `127.0.0.1:8791`，可继续使用前述 SSH 隧道。对公网开放时，在现有反向代理中给项目域名添加独立站点，将上游指向该地址并配置 HTTPS。例如已有 Caddy 时，站点内容可用 `reverse_proxy 127.0.0.1:8791`。容器内的代理需使用其可达的宿主机上游。安装步骤不需要占用 80 或 443 端口。
+Gunicorn 监听 `127.0.0.1:8791`，公网 80/443 由反向代理监听。自管代理可在现有站点管理工具中将域名转发到这个上游。容器内的代理需要能连接宿主机上的上游。
 
 ### 手动触发同步
 
