@@ -54,5 +54,8 @@
 </header>
 <main id="main" class="wrapper">{% block main %}{% endblock %}</main>
 <footer class="wrapper"><span>{{ t('From somewhere, to someone, with curiosity.','从某处，寄给某人，带着好奇。') }}</span>{% if demo and drawn is defined and drawn is not none %}<small>{{ t('Fictional preview','模拟来信') }}</small>{% endif %}</footer>
+{% if analytics_token %}
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ {"token": analytics_token}|tojson }}'></script>
+{% endif %}
 </body>
 </html>

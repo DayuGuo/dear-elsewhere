@@ -13,6 +13,7 @@
   </header>
   <section class="index-note"><h2>{{ t('A public index','一份公共索引') }}</h2>
   <p>{{ t('The site checks public posts hourly and connects invitations with their replies. You can play entirely on X. The index keeps post identifiers, dates, and connections. The writing and media stay with their authors on X. Opening a page with embedded posts also connects your browser to X.','网站每小时检索公开帖子，将邀请和回信连在一起。你可以全程在 X 上参与。索引保存帖子编号、时间和关联，文字与影像由作者发布在 X 上。浏览内嵌帖子时，浏览器会连接到 X。') }}</p>
+  {% if analytics_token %}<p>{{ t('We use Cloudflare Web Analytics to count page visits and see how quickly pages load.','本站使用 Cloudflare Web Analytics 统计页面访问量和加载速度。') }}</p>{% endif %}
   {% if contact %}<p>{{ t('For a removal or a broken link, send the post URL to','需要移除记录或反馈失效链接，请将原帖网址发送至') }} <a href="mailto:{{ contact }}">{{ contact }}</a>{{ t('.','。') }}</p>{% endif %}
   </section>
 </article>

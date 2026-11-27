@@ -63,7 +63,8 @@ def settings():
     if demo:
         from .demo import LETTERS, LETTERS_ZH
         letters = t(LETTERS, LETTERS_ZH)
-    return dict(demo=demo, letters=letters, contact=os.getenv("DEAR_CONTACT_EMAIL"))
+    return dict(demo=demo, letters=letters, contact=os.getenv("DEAR_CONTACT_EMAIL"),
+                analytics_token=os.getenv("CF_WEB_ANALYTICS_TOKEN", "").strip() if not demo else "")
 
 
 @app.template_filter("date")
