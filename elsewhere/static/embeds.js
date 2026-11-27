@@ -25,11 +25,23 @@ function widget(element) {
   })).catch(() => { /* Keep the original link when X is unavailable. */ });
 }
 
+// oEmbed puts the post language on its paragraph. Keep it when rebuilding the DOM.
+function applyPostTypography(target, body) {
+  const text = body.textContent;
+  const lang = body.lang;
+  const hasChinese = !/^(ja|ko)(-|$)/i.test(lang)
+    && /\p{Script=Han}/u.test(text)
+    && !/[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(text);
+  target.dir = "auto";
+  target.lang = (!lang || lang === "und") && hasChinese ? "zh" : lang || "und";
+  target.classList.toggle("has-han", hasChinese);
+}
+
 // Keep the post's text, line breaks and links without mounting remote HTML.
 function readablePost(body) {
   const paragraph = document.createElement("p");
   paragraph.className = "post-body";
-  paragraph.dir = "auto";
+  applyPostTypography(paragraph, body);
   for (const node of body.childNodes) {
     if (node.nodeName === "A" && /^https?:\/\//i.test(node.getAttribute("href") || "")) {
       const link = document.createElement("a");
@@ -88,7 +100,7 @@ async function embed(element) {
     excerpt.className = "excerpt";
     excerpt.href = element.closest(".thread-reply") ? original : card.querySelector(".task-label a").href;
     excerpt.textContent = body.textContent.trim();
-    excerpt.dir = "auto";
+    applyPostTypography(excerpt, body);
     const author = document.createElement("a");
     author.className = "excerpt-author";
     author.href = original;

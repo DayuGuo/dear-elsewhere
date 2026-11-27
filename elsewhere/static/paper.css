@@ -30,6 +30,8 @@
   --han: "Folio Song", "Songti SC";
   --serif: Cormorant, var(--han), Georgia, serif;
   --song: var(--han), SimSun, serif;
+  /* User posts can contain Han characters outside the small interface font subset. */
+  --post-zh: Cormorant, "Songti SC", "Noto Serif CJK SC", "Noto Serif SC", SimSun, "PingFang SC", serif;
   --ui: system-ui, sans-serif;
   --corner: .55rem;
   --inset: clamp(1.1rem, 3.8vw, 3.4rem);
@@ -149,7 +151,7 @@ body > footer { justify-content: space-between; flex-wrap: wrap; color: var(--mu
 .branch-reply + .branch-reply { margin-top: 1.3rem; }
 .branch-reply summary { cursor: pointer; color: var(--olive); padding-block: .4rem; width: fit-content; }
 .letter, .post-body { overflow-wrap: anywhere; font: 500 1.32rem/1.52 var(--serif); }
-:lang(zh-CN) :is(.letter,.post-body) { font: 500 1.06rem/1.8 var(--serif); }
+:is(.letter,.post-body):is(:lang(zh),.has-han) { font: 500 1.06rem/1.8 var(--post-zh); }
 .post-body { white-space: pre-line; }
 .post-body a { color: var(--olive); }
 .embed { max-width: 100%; overflow: hidden; }
@@ -278,7 +280,7 @@ button.hashtag:hover { text-decoration-style: solid; }
   overflow: hidden; overflow-wrap: anywhere; white-space: pre-line; text-decoration: none;
   font: 500 1.22rem/1.28 var(--serif); margin: 0;
 }
-:lang(zh-CN) :is(.excerpt,.thread-card .letter) { font-size: 1.04rem; line-height: 1.6; }
+:is(.excerpt,.thread-card .letter):is(:lang(zh),.has-han) { font: 500 1.04rem/1.6 var(--post-zh); }
 .thread-reply :is(.excerpt,.letter) { -webkit-line-clamp: 3; }
 .excerpt-author { display: block; width: fit-content; max-width: 100%; overflow-wrap: anywhere; margin-top: .4rem; text-decoration: none; }
 .thread-card a:is(:hover,:focus-visible) { text-decoration: underline; }
@@ -291,5 +293,5 @@ button.hashtag:hover { text-decoration-style: solid; }
   .thread-heading, .thread-reply summary { flex-wrap: wrap; }
   .thread-card :is(.post-origin,time,.excerpt-author,.more-replies) { font-size: .71rem; }
   .thread-card :is(.task-label,.reply-label) { font-size: .76rem; }
-  :lang(zh-CN) :is(.excerpt,.thread-card .letter) { font-size: .98rem; }
+  :is(.excerpt,.thread-card .letter):is(:lang(zh),.has-han) { font-size: .98rem; }
 }

@@ -24,4 +24,4 @@
 {% if more %}<a href="?page={{ number+1 }}{{ anchor }}">{{ t('Next','下一页') }} →</a>{% endif %}
 </nav>{% endif %}
 {% endmacro %}
-{% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js',v='photo-cards') }}"></script>{% endmacro %}
+{% macro widgets() %}<script defer src="{{ url_for('static',filename='embeds.js',v='post-type') }}"></script>{% endmacro %}
